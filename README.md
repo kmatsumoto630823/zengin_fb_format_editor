@@ -1,4 +1,4 @@
-# Zengin FB Format_Editor
+# Zengin FB Format Editor
 全銀協が定めるFBデータ（固定長）を編集するエディタ
 
 いまのところ総振にのみ対応
