@@ -1,1 +1,3 @@
-# zengin_fb_format_editor
+# 全銀協のFB（ファームバンキング）データをエディタ
+
+#　ライセンス
