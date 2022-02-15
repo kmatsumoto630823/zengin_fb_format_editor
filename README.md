@@ -35,6 +35,12 @@
 - SJISのみ(EBCDICは非対応)
 - データレコードから計算した合計件数と合計金額がトレーラーレコードと不一致の場合警告
 
+# Dependencies
+下記の環境でビルド
+WxWidgets-3.1.5
+Windows 10
+gcc/MinGW 11.2.0/9.0.0
+
 # Author
 kmatsumoto630823
 
