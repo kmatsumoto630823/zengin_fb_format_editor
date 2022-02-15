@@ -39,4 +39,6 @@
 kmatsumoto630823
 
 # License
-MIT
+MIT License
+
+詳細はLicenseファイルをお読みください
