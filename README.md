@@ -3,6 +3,10 @@
 
 いまのところ総振にのみ対応
 
+# Description
+
+準備中
+
 # Author
 kmatsumoto630823
 
