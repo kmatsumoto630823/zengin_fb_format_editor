@@ -1,3 +1,8 @@
-# 全銀協のFB（ファームバンキング）データをエディタ
+# zengin_fb_format_editor
+全銀協のFB（ファームバンキング）データを編集するエディタ
 
-#　ライセンス
+# Author
+kmatsumoto
+
+# License
+MIT
