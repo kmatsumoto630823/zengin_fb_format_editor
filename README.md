@@ -4,7 +4,7 @@
 いまのところ総振にのみ対応
 
 # Author
-kmatsumoto
+kmatsumoto630823
 
 # License
 MIT
