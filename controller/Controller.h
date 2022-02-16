@@ -19,13 +19,6 @@ protected:
 private:
     virtual void create_frame() = 0;
     virtual void create_binds() = 0;
-
-    Controller(const Controller&) = delete;
-    Controller& operator=(const Controller&) = delete;
-
-    Controller(Controller&&) = delete;
-    Controller& operator=(Controller&&) = delete;
-
 };
 
 

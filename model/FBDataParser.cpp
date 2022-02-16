@@ -10,106 +10,106 @@ constexpr std::size_t FB_DATA_KB    = 2;
 constexpr std::size_t FB_TRAILER_KB = 8;
 constexpr std::size_t FB_END_KB     = 9;
 
-constexpr char fb_char_includes_num []   = "0123456789";
-constexpr char fb_pad_num []  = "L0";
+constexpr char char_num []  = "0123456789";
+constexpr char pad_num []   = "L0";
 
-constexpr char fb_char_includes_kana []  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ";
-constexpr char fb_pad_kana [] = "R ";
+constexpr char char_kana []  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝﾞﾟ";
+constexpr char pad_kana []   = "R ";
 
-constexpr char fb_char_includes_dummy []  = " ";
-constexpr char fb_pad_dummy [] = "R ";
+constexpr char char_dummy []  = " ";
+constexpr char pad_dummy []   = "R ";
 
-const FBInfo FBDataParser::fb_header_info_sohfuri =
+const FBAttrs FBDataParser::fb_header_attrs_sohfuri =
 {
-    std::make_tuple( 0, "データ区分",     0,  1, "1", "L1", nullptr, "1：ヘッダーレコード（固定）"),
-    std::make_tuple( 1, "種別コード",     1,  2, fb_char_includes_num,   fb_pad_num,   nullptr,   "21：総合振込"),
-    std::make_tuple( 2, "コード区分",     3,  1, fb_char_includes_num,   fb_pad_num,   nullptr,   "0：JIS\r\n1：EBCDIC"),
-    std::make_tuple( 3, "依頼人コード",   4, 10, fb_char_includes_num,   fb_pad_num,   nullptr,   "振込依頼人識別のため銀行が採番したコード"),
-    std::make_tuple( 4, "依頼人名",      14, 40, fb_char_includes_kana,  fb_pad_kana,  nullptr,   nullptr),
-    std::make_tuple( 5, "取組日",        54,  4, fb_char_includes_num,   fb_pad_num,   nullptr,   "MM月DD日"),
-    std::make_tuple( 6, "仕向銀行番号",  58,  4, fb_char_includes_num,   fb_pad_num,   nullptr,   nullptr),
-    std::make_tuple( 7, "仕向銀行名",    62, 15, fb_char_includes_kana,  fb_pad_kana,  nullptr,   nullptr),
-    std::make_tuple( 8, "仕向支店番号",  77,  3, fb_char_includes_num,   fb_pad_num,   nullptr,   nullptr),
-    std::make_tuple( 9, "仕向支店名",    80, 15, fb_char_includes_kana,  fb_pad_kana,  nullptr,   nullptr),
-    std::make_tuple(10, "預金種目",      95,  1, fb_char_includes_num,   fb_pad_num,   " ",       "1：普通預金\r\n2：当座預金\r\n9：その他"),
-    std::make_tuple(11, "口座番号",      96,  7, fb_char_includes_num,   fb_pad_num,   "       ", nullptr),
-    std::make_tuple(12, "ダミー",       103, 17, fb_char_includes_dummy, fb_pad_dummy, nullptr,   nullptr)
+    { 0, "データ区分",     0,  1, "1",        "L1",      nullptr,   "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「１」：ヘッダーレコード"},
+    { 1, "種別コード",     1,  2, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（２）\r\n必須項目\r\n「２１」：総合振込"},
+    { 2, "コード区分",     3,  1, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「０」：ＳＪＩＳ\r\n「１」：ＥＢＣＤＩＣ"},
+    { 3, "依頼人コード",   4, 10, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（１０）\r\n必須項目\r\n振込依頼人識別のため銀行が採番したコード"},
+    { 4, "依頼人名",      14, 40, char_kana,  pad_kana,  nullptr,   "文字種（桁）：Ｃ（４０）\r\n必須項目"},
+    { 5, "取組日",        54,  4, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（４）\r\n必須項目\r\nＭＭＤＤ（ＭＭ月ＤＤ日）"},
+    { 6, "仕向銀行番号",  58,  4, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（４）\r\n必須項目\r\n統一金融機関番号"},
+    { 7, "仕向銀行名",    62, 15, char_kana,  pad_kana,  nullptr,   "文字種（桁）：Ｃ（１５）\r\n任意項目"},
+    { 8, "仕向支店番号",  77,  3, char_num,   pad_num,   nullptr,   "文字種（桁）：Ｎ（３）\r\n必須項目\r\n統一店番号"},
+    { 9, "仕向支店名",    80, 15, char_kana,  pad_kana,  nullptr,   "文字種（桁）：Ｃ（１５）\r\n任意項目"},
+    {10, "預金種目",      95,  1, char_num,   pad_num,   " ",       "文字種（桁）：Ｎ（１）\r\n任意項目\r\n「１」：普通預金\r\n「２」：当座預金\r\n「９」：その他"},
+    {11, "口座番号",      96,  7, char_num,   pad_num,   "       ", "文字種（桁）：Ｎ（７）\r\n任意項目"},
+    {12, "ダミー",       103, 17, char_dummy, pad_dummy, nullptr,   "文字種（桁）：Ｃ（１７）\r\n必須項目\r\nスペースとする"}
 };
 
-const FBInfo FBDataParser::fb_data_info_sohfuri =
+const FBAttrs FBDataParser::fb_data_attrs_sohfuri =
 {
-    std::make_tuple( 0, "データ区分",      0,  1, "2", "L2", nullptr, "2：データレコード（固定）"),
-    std::make_tuple( 1, "銀行番号",        1,  4, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple( 2, "銀行名",          5, 15, fb_char_includes_kana,  fb_pad_kana,  nullptr, nullptr),
-    std::make_tuple( 3, "支店番号",       20,  3, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple( 4, "支店名",         23, 15, fb_char_includes_kana,  fb_pad_kana,  nullptr, nullptr),
-    std::make_tuple( 5, "手形交換所番号", 38,  4, fb_char_includes_num,   fb_pad_num,   "    ",  nullptr),
-    std::make_tuple( 6, "預金種目",       42,  1, fb_char_includes_num,   fb_pad_num,   nullptr, "1：普通預金\r\n2：当座預金\r\n4：貯蓄預金\r\n9：その他"),
-    std::make_tuple( 7, "口座番号",       43,  7, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple( 8, "受取人名",       50, 30, fb_char_includes_kana,  fb_pad_kana,  nullptr, nullptr),
-    std::make_tuple( 9, "振込金額",       80, 10, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple(10, "新規コード",     90,  1, fb_char_includes_num,   fb_pad_num,   " ",     "1：第１回振込分\r\n2：変更分（銀行・支店、預金種目・口座番号）\r\n0：その他"),
-    std::make_tuple(11, "顧客コード1",    91, 10, fb_char_includes_kana,  fb_pad_kana,  nullptr, nullptr),
-    std::make_tuple(12, "顧客コード2",   101, 10, fb_char_includes_kana,  fb_pad_kana,  nullptr, nullptr),
-    std::make_tuple(13, "振込区分",      111,  1, fb_char_includes_num,   fb_pad_num,   " ",     "7：テレ振込\r\n8：文書振込"),
-    std::make_tuple(14, "識別表\示",     112,  1, fb_char_includes_kana,  fb_pad_kana,  nullptr, "「Y」またはスペース\r\n「Y」の場合、「顧客コード1」「顧客コード2」は「EDI情報」となる"),
-    std::make_tuple(15, "ダミー",        113,  7, fb_char_includes_dummy, fb_pad_dummy, nullptr, nullptr)
+    { 0, "データ区分",      0,  1, "2",        "L2",      nullptr, "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「２」：データーレコード"},
+    { 1, "銀行番号",        1,  4, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（４）\r\n必須項目\r\n統一金融機関番号"},
+    { 2, "銀行名",          5, 15, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｃ（１５）\r\n任意項目"},
+    { 3, "支店番号",       20,  3, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（３）\r\n必須項目\r\n統一店番号"},
+    { 4, "支店名",         23, 15, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｃ（１５）\r\n任意項目"},
+    { 5, "手形交換所番号", 38,  4, char_num,   pad_num,   "    ",  "文字種（桁）：Ｎ（４）\r\n 任意項目\r\n統一手形交換所番号"},
+    { 6, "預金種目",       42,  1, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「１」：普通預金\r\n「２」：当座預金\r\n「４」：貯蓄預金\r\n「９」：その他"},
+    { 7, "口座番号",       43,  7, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（７）\r\n必須項目"},
+    { 8, "受取人名",       50, 30, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｃ（３０）\r\n必須項目"},
+    { 9, "振込金額",       80, 10, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（１０）\r\n必須項目"},
+    {10, "新規コード",     90,  1, char_num,   pad_num,   " ",     "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「１」：第１回振込分\r\n「２」：変更分（銀行・支店、預金種目・口座番号）\r\n「０」：その他"},
+    {11, "顧客コード1",    91, 10, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｎ（１0）\r\n任意項目\r\n依頼人が定めた受取人識別のための顧客コード"},
+    {12, "顧客コード2",   101, 10, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｎ（１0）\r\n任意項目\r\n依頼人が定めた受取人識別のための顧客コード"},
+    {13, "振込区分",      111,  1, char_num,   pad_num,   " ",     "文字種（桁）：Ｎ（１）\r\n任意項目\r\n「７」：テレ振込\r\n「８」：文書振込"},
+    {14, "識別表\示",     112,  1, char_kana,  pad_kana,  nullptr, "文字種（桁）：Ｃ（１）\r\n任意項目\r\n「Ｙ」またはスペース\r\n「Ｙ」の場合、「顧客コード１」「顧客コード２」は「EDI情報」となる"},
+    {15, "ダミー",        113,  7, char_dummy, pad_dummy, nullptr, "文字種（桁）：Ｃ（７）\r\n必須項目\r\nスペースとする"}
 };
 
-const FBInfo FBDataParser::fb_trailer_info_sohfuri =
+const FBAttrs FBDataParser::fb_trailer_attrs_sohfuri =
 {
-    std::make_tuple( 0, "データ区分",  0,   1, "8", "L8", nullptr,  "8：トレーラーレコード（固定）"),
-    std::make_tuple( 1, "合計件数",    1,   6, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple( 2, "合計金額",    7,  12, fb_char_includes_num,   fb_pad_num,   nullptr, nullptr),
-    std::make_tuple( 3, "ダミー",     19, 101, fb_char_includes_dummy, fb_pad_dummy, nullptr, nullptr)
+    { 0, "データ区分",  0,   1, "8",        "L8",      nullptr, "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「８」：トレーラーレコード"},
+    { 1, "合計件数",    1,   6, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（６）\r\n必須項目"},
+    { 2, "合計金額",    7,  12, char_num,   pad_num,   nullptr, "文字種（桁）：Ｎ（１２）\r\n必須項目"},
+    { 3, "ダミー",     19, 101, char_dummy, pad_dummy, nullptr, "文字種（桁）：Ｃ（１０１）\r\n必須項目\r\nスペースとする"}
 };
 
-const FBInfo FBDataParser::fb_end_info_sohfuri =
+const FBAttrs FBDataParser::fb_end_attrs_sohfuri =
 {
-    std::make_tuple( 0, "データ区分", 0,   1, "9", "L9", nullptr, "9：エンドレコード（固定）"),
-    std::make_tuple( 1, "ダミー",     1, 119, fb_char_includes_dummy, fb_pad_dummy, nullptr, nullptr)
+    { 0, "データ区分", 0,   1, "9", "L9", nullptr, "文字種（桁）：Ｎ（１）\r\n必須項目\r\n「９」：エンドレコード"},
+    { 1, "ダミー",     1, 119, char_dummy, pad_dummy, nullptr, "文字種（桁）：Ｃ（１１９）\r\n必須項目\r\nスペースとする"}
 };
 
 FBDataParser::FBDataParser() : m_null_str("")
 {
     m_newline_code = "\r\n";
 
-    for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : FBDataParser::fb_header_info){
-        if(initial_value != nullptr){
-            if(length != std::string_view(initial_value).length()){
+    for(const auto &attr : FBDataParser::fb_header_attrs){
+        if(attr.initial_value != nullptr){
+            if(attr.length != std::string_view(attr.initial_value).length()){
                 wxLogMessage("length != std::string_view(initial_value).length()");
             }
         }
     }
 
-    for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : FBDataParser::fb_data_info){
-        if(initial_value != nullptr){
-            if(length != std::string_view(initial_value).length()){
+    for(const auto &attr : FBDataParser::fb_data_attrs){
+        if(attr.initial_value != nullptr){
+            if(attr.length != std::string_view(attr.initial_value).length()){
                 wxLogMessage("length != std::string_view(initial_value).length()");
             }
         }
     }
 
-    for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : FBDataParser::fb_trailer_info){
-        if(initial_value != nullptr){
-            if(length != std::string_view(initial_value).length()){
+    for(const auto &attr : FBDataParser::fb_trailer_attrs){
+        if(attr.initial_value != nullptr){
+            if(attr.length != std::string_view(attr.initial_value).length()){
                 wxLogMessage("length != std::string_view(initial_value).length()");
             }
         }
     }
 
-    for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : FBDataParser::fb_end_info){
-        if(initial_value != nullptr){
-            if(length != std::string_view(initial_value).length()){
+    for(const auto &attr : FBDataParser::fb_end_attrs){
+        if(attr.initial_value != nullptr){
+            if(attr.length != std::string_view(attr.initial_value).length()){
                 wxLogMessage("length != std::string_view(initial_value).length()");
             }
         }
     }
 
-    fb_header_info = fb_header_info_sohfuri;
-    fb_data_info = fb_data_info_sohfuri;
-    fb_trailer_info = fb_trailer_info_sohfuri;
-    fb_end_info = fb_end_info_sohfuri;
+    fb_header_attrs = fb_header_attrs_sohfuri;
+    fb_data_attrs = fb_data_attrs_sohfuri;
+    fb_trailer_attrs = fb_trailer_attrs_sohfuri;
+    fb_end_attrs = fb_end_attrs_sohfuri;
 }
 
 FBDataParser::~FBDataParser()
@@ -171,28 +171,28 @@ bool FBDataParser::open_fb_file(const std::string &path)
 
         record_kb = fb_str_line.at(0) - '0';
 
-        FBInfo *fb_info_ref;
+        FBAttrs *fb_attrs_ref;
         FBLines *fb_lines_ref;
 
         switch(record_kb)
         {
             case FB_HEADER_KB:
-                fb_info_ref = &fb_header_info;
+                fb_attrs_ref = &fb_header_attrs;
                 fb_lines_ref = &fb_header_lines;
                 break;
 
             case FB_DATA_KB:
-                fb_info_ref = &fb_data_info;
+                fb_attrs_ref = &fb_data_attrs;
                 fb_lines_ref = &fb_data_lines;
                 break;
             
             case FB_TRAILER_KB:
-                fb_info_ref = &fb_trailer_info;
+                fb_attrs_ref = &fb_trailer_attrs;
                 fb_lines_ref = &fb_trailer_lines;
                 break;
 
             case FB_END_KB:
-                fb_info_ref = &fb_end_info;
+                fb_attrs_ref = &fb_end_attrs;
                 fb_lines_ref = &fb_end_lines;
                 break;
 
@@ -201,16 +201,13 @@ bool FBDataParser::open_fb_file(const std::string &path)
                 return false;
         }
 
-        for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : *fb_info_ref)
+        for(const auto &attr : *fb_attrs_ref)
         {
-            auto fb_str_sub = fb_str_line.substr(offset, length);
+            auto fb_str_sub = fb_str_line.substr(attr.offset, attr.length);
 
-
-            
-
-            if(fb_str_sub.find_first_not_of(char_includes) != std::string_view::npos)
+            if(fb_str_sub.find_first_not_of(attr.char_includes) != std::string_view::npos)
             {
-                if(initial_value == nullptr || fb_str_sub != std::string_view(initial_value)){
+                if(attr.initial_value == nullptr || fb_str_sub != std::string_view(attr.initial_value)){
                     wxLogMessage("fb_str_sub.find_first_not_of(char_includes) != std::string_view::npos");
                     return false;
                 }
@@ -252,54 +249,54 @@ std::string_view FBDataParser::get_fb_newline_code()
 }
 
 
-std::size_t FBDataParser::get_fb_row_size(FBLines& fb_lines, FBInfo& fb_info)
+std::size_t FBDataParser::get_fb_row_size(FBLines& fb_lines, FBAttrs& fb_attrs)
 {
     return fb_lines.size();
 }
 
-bool FBDataParser::assign_fb_line(std::size_t num, FBLines& fb_lines, FBInfo& fb_info)
+bool FBDataParser::assign_fb_line(std::size_t num, FBLines& fb_lines, FBAttrs& fb_attrs)
 {
     fb_lines.assign(num, std::string(FB_WIDTH, ' '));
     return true;
 }
 
 
-std::string_view FBDataParser::get_fb_value(std::size_t row, std::size_t col, FBLines& fb_lines, FBInfo& fb_info)
+std::string_view FBDataParser::get_fb_value(std::size_t row, std::size_t col, FBLines& fb_lines, FBAttrs& fb_attrs)
 {
-    if(row >= fb_lines.size() || col >= fb_info.size())
+    if(row >= fb_lines.size() || col >= fb_attrs.size())
     {
-        wxLogMessage("row >= fb_lines.size() || col >= fb_info.size()");
+        wxLogMessage("row >= fb_lines.size() || col >= fb_attr.size()");
         return m_null_str;
     }
     
-    auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] = fb_info.at(col);
+    const auto &attr = fb_attrs.at(col);
 
     std::string_view line = fb_lines.at(row);
-    auto value = line.substr(offset, length);
+    auto value = line.substr(attr.offset, attr.length);
     
     return value;
  
 }
 
-bool FBDataParser::set_fb_value(std::size_t row, std::size_t col, std::string_view value, FBLines& fb_lines, FBInfo& fb_info)
+bool FBDataParser::set_fb_value(std::size_t row, std::size_t col, std::string_view value, FBLines& fb_lines, FBAttrs& fb_attrs)
 {
-    if(row >= fb_lines.size() || col >= fb_info.size())
+    if(row >= fb_lines.size() || col >= fb_attrs.size())
     {
-        wxLogMessage("row >= fb_lines.size() || col >= fb_info.size()");
+        wxLogMessage("row >= fb_lines.size() || col >= fb_attr.size()");
         return false;
     }
 
-    auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] = fb_info.at(col);
-    if(value.size() != length)
+    const auto &attr = fb_attrs.at(col);
+    if(value.size() != attr.length)
     {
         wxLogMessage("value.size() != length");
         return false;
     }
 
 
-    if(value.find_first_not_of(char_includes) != std::string_view::npos)
+    if(value.find_first_not_of(attr.char_includes) != std::string_view::npos)
     {
-        if(initial_value == nullptr || value != std::string_view(initial_value))
+        if(attr.initial_value == nullptr || value != std::string_view(attr.initial_value))
         {
             wxLogMessage("value.find_first_not_of(char_includes) != std::string_view::npos");
             return false;
@@ -307,7 +304,7 @@ bool FBDataParser::set_fb_value(std::size_t row, std::size_t col, std::string_vi
     }
 
     auto &line = fb_lines.at(row);
-    std::copy(value.begin(), value.end(), line.begin() + offset);
+    std::copy(value.begin(), value.end(), line.begin() + attr.offset);
 
     return true;
 }

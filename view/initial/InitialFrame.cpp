@@ -11,7 +11,7 @@
 #include <wx/sizer.h>
 #include <wx/log.h>
 
-InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Sohfuri FB Format Editor")
+InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor")
 {
 
     // MENU FILE
@@ -57,11 +57,11 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Sohfuri FB Format Editor
     //GRID_HEADER
     grid_header = new wxGrid(panel_top, wxID_ANY);
     grid_header->SetGridLineColour(wxColour(0,0,0));
-    //grid_header->SetLabelBackgroundColour(wxColour(240, 248, 255));
     grid_header->SetDefaultCellFont(font_grid_cell);
     grid_header->SetTabBehaviour(wxGrid::Tab_Wrap);
     grid_header->SetCellHighlightColour(grid_header->GetSelectionBackground());
     grid_header->DisableDragRowSize();
+    grid_header->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
     button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択");
     button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力");
@@ -69,12 +69,12 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Sohfuri FB Format Editor
     //GRID_DATA
     grid_data = new wxGrid(panel_top, wxID_ANY);
     grid_data->SetGridLineColour(wxColour(0,0,0));
-    //grid_data->SetLabelBackgroundColour(wxColour(240, 248, 255));
     grid_data->SetDefaultCellFont(font_grid_cell);
     grid_data->SetTabBehaviour(wxGrid::Tab_Wrap);
     grid_data->SetCellHighlightColour(grid_data->GetSelectionBackground());
     grid_data->DisableDragRowSize();
     grid_data->SetScrollLineY(grid_data->GetScrollLineY()/2);
+    grid_data->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
     button_data_add = new wxButton(panel_top, wxID_ANY, "＋行追");
     button_data_delete = new wxButton(panel_top, wxID_ANY, "－行削");
@@ -85,22 +85,22 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Sohfuri FB Format Editor
     //GRID_TRAILER
     grid_trailer = new wxGrid(panel_top, wxID_ANY);
     grid_trailer->SetGridLineColour(wxColour(0,0,0));
-    //grid_trailer->SetLabelBackgroundColour(wxColour(240, 248, 255));
     grid_trailer->SetDefaultCellFont(font_grid_cell);
     grid_trailer->SetTabBehaviour(wxGrid::Tab_Wrap);
     grid_trailer->SetCellHighlightColour(grid_trailer->GetSelectionBackground());
     grid_trailer->DisableDragRowSize();
+    grid_trailer->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
     button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算");
 
     //GRID_END
     grid_end = new wxGrid(panel_top, wxID_ANY);
     grid_end->SetGridLineColour(wxColour(0,0,0));
-    //grid_end->SetLabelBackgroundColour(wxColour(240, 248, 255));
     grid_end->SetDefaultCellFont(font_grid_cell);
     grid_end->SetTabBehaviour(wxGrid::Tab_Wrap);
     grid_end->SetCellHighlightColour(grid_end->GetSelectionBackground());
     grid_end->DisableDragRowSize();
+    grid_end->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
     //SIZER
     auto sizer_top = new wxBoxSizer(wxVERTICAL);

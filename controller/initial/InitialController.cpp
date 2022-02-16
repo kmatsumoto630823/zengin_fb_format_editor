@@ -1,12 +1,11 @@
 #include "InitialController.h"
-
 #include <wx/log.h>
 
-#define F() (get_casted_frame())
+#define F() (InitialController::get_casted_frame())
 
 void InitialController::reset_grid()
 {
-    auto lambda_reset_grid = [](wxGrid * grid, const FBInfo &fb_info)
+    auto lambda_reset_grid = [](wxGrid * grid, const FBAttrs &fb_attrs)
     {
         if(auto h = grid->GetNumberRows(); h > 0) grid->DeleteRows(0, h);
         if(auto w = grid->GetNumberCols(); w > 0) grid->DeleteCols(0, w);
@@ -17,18 +16,21 @@ void InitialController::reset_grid()
             return;
         }
 
-        grid->AppendCols(fb_info.size());
+        grid->AppendCols(fb_attrs.size());
 
-        for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : fb_info)
+        for(const auto &attr : fb_attrs)
         {
-            auto col = num;
+            auto col = attr.num;
 
-            grid->SetColLabelValue(col, label);
+            grid->SetColLabelValue(col, attr.label);
+
             auto col_attr = new wxGridCellAttr;
-            auto col_editor = new trimGridCellTextEditor(length);
+            auto col_editor = new trimGridCellTextEditor(attr.length);
 
-            if(char_includes != nullptr)col_editor->SetValidString(char_includes);
-            if(label != nullptr && description != nullptr) col_editor->SetTipString(label, description);
+            if(attr.char_includes != nullptr)
+                col_editor->SetValidString(attr.char_includes);
+            if(attr.label != nullptr && attr.description != nullptr)
+                col_editor->SetTipString(attr.label, attr.description);
 
             col_attr->SetEditor(col_editor);
             grid->SetColAttr(col, col_attr);    
@@ -36,18 +38,18 @@ void InitialController::reset_grid()
 
         grid->AppendRows();
 
-        if(fb_info.size() > grid->GetNumberCols())
+        if(fb_attrs.size() > grid->GetNumberCols())
         {
-            wxLogMessage("fb_info.size() > grid->GetNumberCols()");
+            wxLogMessage("fb_attr.size() > grid->GetNumberCols()");
             return;
         }
 
-        for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : fb_info)
+        for(const auto &attr : fb_attrs)
         {
-           auto col = num;
-           auto value = wxString(length, pad_info[1]);
+           auto col = attr.num;
+           auto value = wxString(attr.length, attr.pad_info[1]);
 
-            if(initial_value != nullptr) value = initial_value;
+            if(attr.initial_value != nullptr) value = attr.initial_value;
 
             grid->SetCellValue(grid->GetNumberRows() - 1, col, value);
         }
@@ -63,10 +65,10 @@ void InitialController::reset_grid()
     };
 
 
-    lambda_reset_grid(F()->get_grid_header(),  fb.get_fb_header_info());
-    lambda_reset_grid(F()->get_grid_data(),    fb.get_fb_data_info());
-    lambda_reset_grid(F()->get_grid_trailer(), fb.get_fb_trailer_info());
-    lambda_reset_grid(F()->get_grid_end(),     fb.get_fb_end_info());
+    lambda_reset_grid(F()->get_grid_header(),  fb.get_fb_header_attrs());
+    lambda_reset_grid(F()->get_grid_data(),    fb.get_fb_data_attrs());
+    lambda_reset_grid(F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
+    lambda_reset_grid(F()->get_grid_end(),     fb.get_fb_end_attrs());
 }
 
 void InitialController::create_frame()
@@ -75,43 +77,38 @@ void InitialController::create_frame()
 
     F()->get_button_header_export()->Hide();
 
-    F()->get_grid_header()->CreateGrid (0, 0, wxGrid::wxGridSelectRowsOrColumns);
-    F()->get_grid_data()->CreateGrid   (0, 0, wxGrid::wxGridSelectRowsOrColumns);
-    F()->get_grid_trailer()->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
-    F()->get_grid_end()->CreateGrid    (0, 0, wxGrid::wxGridSelectRowsOrColumns);
-
     reset_grid();
 
-    Controller::frame->SetSize(wxSize(1600, 900));
+    F()->SetSize(wxSize(1600, 900));
 }
 
 void InitialController::create_binds()
 {
-    auto LambdaFBPaserRead = [](wxGrid *grid, const FBInfo &fb_info, auto fb, auto get_fb_value, auto get_fb_row_size)
+    auto LambdaFBPaserRead = [](wxGrid *grid, const FBAttrs &fb_attrs, auto fb, auto get_fb_value, auto get_fb_row_size)
     {
         if(grid->GetNumberRows() != 0) grid->DeleteRows(0, grid->GetNumberRows());
         grid->AppendRows((fb->*get_fb_row_size)());
 
         for(int row = 0; row < (fb->*get_fb_row_size)(); row++)
         {
-            for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : fb_info)
+            for(const auto &attr : fb_attrs)
             {
-                auto col = num;
-                grid->SetCellValue(row, col, wxString((fb->*get_fb_value)(row, col).data(), length));
+                auto col = attr.num;
+                grid->SetCellValue(row, col, wxString((fb->*get_fb_value)(row, col).data(), attr.length));
             }
         }
     };
 
-    auto LambdaFBPaserWrite = [](wxGrid *grid, const FBInfo &fb_info, auto fb, auto assign_fb_line, auto set_fb_value)
+    auto LambdaFBPaserWrite = [](wxGrid *grid, const FBAttrs &fb_attrs, auto fb, auto assign_fb_line, auto set_fb_value)
     {
         auto row_size = grid->GetNumberRows();
         (fb->*assign_fb_line)(row_size);
 
         for(int row = 0; row < row_size; row++)
         {
-            for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : fb_info)
+            for(const auto &attr : fb_attrs)
             {
-                auto col = num;
+                auto col = attr.num;
                 auto value = grid->GetCellValue(row, col);
                 (fb->*set_fb_value)(row, col, value.ToStdString());
             }
@@ -155,10 +152,10 @@ void InitialController::create_binds()
         if(fb.get_fb_trailer_row_size() != 1) {wxLogMessage("fb.get_fb_trailer_row_size() != 1"); return;}
         if(fb.get_fb_end_row_size()     != 1) {wxLogMessage("fb.get_fb_end_row_size()     != 1"); return;}
 
-        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_info(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
-        LambdaFBPaserRead(F()->get_grid_data(),    fb.get_fb_data_info(),    &fb, &FBDataParser::get_fb_data_value,    &FBDataParser::get_fb_data_row_size);
-        LambdaFBPaserRead(F()->get_grid_trailer(), fb.get_fb_trailer_info(), &fb, &FBDataParser::get_fb_trailer_value, &FBDataParser::get_fb_trailer_row_size);
-        LambdaFBPaserRead(F()->get_grid_end(),     fb.get_fb_end_info(),     &fb, &FBDataParser::get_fb_end_value,     &FBDataParser::get_fb_end_row_size);
+        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
+        LambdaFBPaserRead(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBDataParser::get_fb_data_value,    &FBDataParser::get_fb_data_row_size);
+        LambdaFBPaserRead(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBDataParser::get_fb_trailer_value, &FBDataParser::get_fb_trailer_row_size);
+        LambdaFBPaserRead(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBDataParser::get_fb_end_value,     &FBDataParser::get_fb_end_row_size);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
@@ -253,10 +250,10 @@ void InitialController::create_binds()
         wxFileDialog fdialog(F(), "FBデータの保存", wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_info(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
-        LambdaFBPaserWrite(F()->get_grid_data(),    fb.get_fb_data_info(),    &fb, &FBDataParser::assign_fb_data_line,    &FBDataParser::set_fb_data_value);
-        LambdaFBPaserWrite(F()->get_grid_trailer(), fb.get_fb_trailer_info(), &fb, &FBDataParser::assign_fb_trailer_line, &FBDataParser::set_fb_trailer_value);
-        LambdaFBPaserWrite(F()->get_grid_end(),     fb.get_fb_end_info(),     &fb, &FBDataParser::assign_fb_end_line,     &FBDataParser::set_fb_end_value);
+        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
+        LambdaFBPaserWrite(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBDataParser::assign_fb_data_line,    &FBDataParser::set_fb_data_value);
+        LambdaFBPaserWrite(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBDataParser::assign_fb_trailer_line, &FBDataParser::set_fb_trailer_value);
+        LambdaFBPaserWrite(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBDataParser::assign_fb_end_line,     &FBDataParser::set_fb_end_value);
 
         if(fb.get_fb_header_row_size()  != 1) {wxLogMessage("fb.get_fb_header_row_size()  != 1"); return;}
         if(fb.get_fb_data_row_size()    <= 0) {wxLogMessage("fb.get_fb_data_row_size()    <= 0"); return;}
@@ -319,10 +316,10 @@ void InitialController::create_binds()
         if(fb.get_fb_trailer_row_size() != 0) {wxLogMessage("fb.get_fb_trailer_row_size() != 0"); return;}
         if(fb.get_fb_end_row_size()     != 0) {wxLogMessage("fb.get_fb_end_row_size()     != 0"); return;}
 
-        const int header_torikumibi_col = 5; 
-        auto value = F()->get_grid_header()->GetCellValue(0, header_torikumibi_col);
-        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_info(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
-        F()->get_grid_header()->SetCellValue(0, header_torikumibi_col, value);
+        const int torikumibi_col = 5; 
+        auto value = F()->get_grid_header()->GetCellValue(0, torikumibi_col);
+        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
+        F()->get_grid_header()->SetCellValue(0, torikumibi_col, value);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
@@ -345,7 +342,7 @@ void InitialController::create_binds()
         wxFileDialog fdialog(F(), "プリセット保存", "./preset/", wxEmptyString, "PRESET files (*.preset)|*.preset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_info(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
+        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
         fb.assign_fb_data_line(0);
         fb.assign_fb_trailer_line(0);
         fb.assign_fb_end_line(0);
@@ -377,22 +374,22 @@ void InitialController::create_binds()
 
 
     // ADD DATA
-    auto LambdaOnDataAdd = [](wxGrid *grid, const FBInfo &fb_info)
+    auto LambdaOnDataAdd = [](wxGrid *grid, const FBAttrs &fb_attrs)
     {
         grid->AppendRows();
 
-        if(fb_info.size() > grid->GetNumberCols())
+        if(fb_attrs.size() > grid->GetNumberCols())
         {
-            wxLogMessage("fb_info.size() > grid->GetNumberCols()");
+            wxLogMessage("fb_attr.size() > grid->GetNumberCols()");
             return;
         }
 
-        for(auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] : fb_info)
+        for(const auto &attr : fb_attrs)
         {
-           auto col = num;
-           auto value = wxString(length, pad_info[1]);
+           auto col = attr.num;
+           auto value = wxString(attr.length, attr.pad_info[1]);
 
-            if(initial_value != nullptr) value = initial_value;
+            if(attr.initial_value != nullptr) value = attr.initial_value;
 
             grid->SetCellValue(grid->GetNumberRows() - 1, col, value);
         }
@@ -407,16 +404,16 @@ void InitialController::create_binds()
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnDataAdd(F()->get_grid_data(), fb.get_fb_data_info());
+        LambdaOnDataAdd(F()->get_grid_data(), fb.get_fb_data_attrs());
 
     }, ID_MENU_DATA_ADD);
 
     F()->get_button_data_add()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnDataAdd(F()->get_grid_data(), fb.get_fb_data_info());
+        LambdaOnDataAdd(F()->get_grid_data(), fb.get_fb_data_attrs());
     });
 
-    auto LambdaOnDataDelete = [](wxGrid *grid, const FBInfo &fb_info)
+    auto LambdaOnDataDelete = [](wxGrid *grid, const FBAttrs &fb_attrs)
     {
         auto selected = grid->GetSelectedRows();
 
@@ -446,13 +443,13 @@ void InitialController::create_binds()
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnDataDelete(F()->get_grid_data(), fb.get_fb_data_info());
+        LambdaOnDataDelete(F()->get_grid_data(), fb.get_fb_data_attrs());
 
     }, ID_MENU_DATA_DELETE);
 
     F()->get_button_data_delete()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnDataDelete(F()->get_grid_data(), fb.get_fb_data_info());
+        LambdaOnDataDelete(F()->get_grid_data(), fb.get_fb_data_attrs());
     });
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
@@ -461,7 +458,7 @@ void InitialController::create_binds()
 
     }, ID_MENU_DATA_SEARCH_BOX);
 
-    auto LambdaDataSearchForward = [](wxGrid *grid, const FBInfo &fb_info, const wxString &value)
+    auto LambdaDataSearchForward = [](wxGrid *grid, const FBAttrs &fb_attrs, const wxString &value)
     {
         if(value.empty()) return;
 
@@ -515,7 +512,7 @@ void InitialController::create_binds()
         grid->GoToCell(grid->GetGridCursorRow(), grid->GetGridCursorCol());
     };
 
-    auto LambdaDataSearchBackward = [](wxGrid *grid, const FBInfo &fb_info, const wxString &value)
+    auto LambdaDataSearchBackward = [](wxGrid *grid, const FBAttrs &fb_attrs, const wxString &value)
     {
         if(value.empty()) return;
 
@@ -572,32 +569,32 @@ void InitialController::create_binds()
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_searchctrl_data_search()->GetValue());
+        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_searchctrl_data_search()->GetValue());
 
     }, ID_MENU_DATA_SEARCH_FORWARD);
 
     F()->get_searchctrl_data_search()->Bind(wxEVT_SEARCH, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_searchctrl_data_search()->GetValue());
+        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_searchctrl_data_search()->GetValue());
     });    
 
     F()->get_button_data_search_forward()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_searchctrl_data_search()->GetValue());
+        LambdaDataSearchForward(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_searchctrl_data_search()->GetValue());
     });
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchBackward(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_searchctrl_data_search()->GetValue());
+        LambdaDataSearchBackward(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_searchctrl_data_search()->GetValue());
 
     }, ID_MENU_DATA_SEARCH_BACKWARD);
 
     F()->get_button_data_search_backward()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchBackward(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_searchctrl_data_search()->GetValue());
+        LambdaDataSearchBackward(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_searchctrl_data_search()->GetValue());
     });
 
-    auto LambdaOnTrailerRecalculate = [](wxGrid *grid_data, FBInfo fb_data_info, wxGrid *grid_trailer, FBInfo fb_trailer_info)
+    auto LambdaOnTrailerRecalculate = [](wxGrid *grid_data, FBAttrs fb_data_attrs, wxGrid *grid_trailer, FBAttrs fb_trailer_attrs)
     {
         if(grid_trailer->GetNumberRows() != 1)
         {
@@ -643,41 +640,41 @@ void InitialController::create_binds()
 
         {
             auto &value = sum_kensu_str;
-            auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] = fb_trailer_info[trailer_kensu_col];
+            const auto &attr = fb_trailer_attrs[trailer_kensu_col];
 
-            if(value.size() > length)
+            if(value.size() > attr.length)
             {
                 wxLogMessage("value.size() > length");
                 return;
             }
             
-            if(pad_info[0] == 'R')
+            if(attr.pad_info[0] == 'R')
             {
-                grid_trailer->SetCellValue(0, num, value.append(length - value.length(), pad_info[1]));
+                grid_trailer->SetCellValue(0, attr.num, value.append(attr.length - value.length(), attr.pad_info[1]));
             }
-            else if(pad_info[0] == 'L')
+            else if(attr.pad_info[0] == 'L')
             {
-                grid_trailer->SetCellValue(0, num, value.insert(0, length - value.length(), pad_info[1]));
+                grid_trailer->SetCellValue(0, attr.num, value.insert(0, attr.length - value.length(), attr.pad_info[1]));
             }            
         }
 
         {
             auto &value = sum_kingaku_str;
-            auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] = fb_trailer_info[trailer_kingaku_col];
+            const auto &attr = fb_trailer_attrs[trailer_kingaku_col];
 
-            if(value.size() > length)
+            if(value.size() > attr.length)
             {
                 wxLogMessage("value.size() > length");
                 return;
             }
             
-            if(pad_info[0] == 'R')
+            if(attr.pad_info[0] == 'R')
             {
-                grid_trailer->SetCellValue(0, num, value.append(length - value.length(), pad_info[1]));
+                grid_trailer->SetCellValue(0, attr.num, value.append(attr.length - value.length(), attr.pad_info[1]));
             }
-            else if(pad_info[0] == 'L')
+            else if(attr.pad_info[0] == 'L')
             {
-                grid_trailer->SetCellValue(0, num, value.insert(0, length - value.length(), pad_info[1]));
+                grid_trailer->SetCellValue(0, attr.num, value.insert(0, attr.length - value.length(), attr.pad_info[1]));
             }            
         }
 
@@ -685,24 +682,24 @@ void InitialController::create_binds()
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnTrailerRecalculate(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_grid_trailer(), fb.get_fb_trailer_info());
+        LambdaOnTrailerRecalculate(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
         
     }, ID_MENU_TRAILER_RECALCULATE);
 
     F()->get_button_trailer_recalculated()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnTrailerRecalculate(F()->get_grid_data(), fb.get_fb_data_info(), F()->get_grid_trailer(), fb.get_fb_trailer_info());
+        LambdaOnTrailerRecalculate(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
     });    
 
-    auto LambdaOnChangedGridCellValue = [](wxGridEvent& event, wxGrid *grid, const FBInfo &fb_info)
+    auto LambdaOnChangedGridCellValue = [](wxGridEvent& event, wxGrid *grid, const FBAttrs &fb_attrs)
     {
         auto row = event.GetRow();
         auto col = event.GetCol();
 
-        auto &[num, label, offset, length, char_includes, pad_info, initial_value, description] = fb_info[col];
+        const auto &attr = fb_attrs[col];
         auto value = grid->GetCellValue(row, col);
 
-        if(length - value.length() < 0)
+        if(attr.length - value.length() < 0)
         {
             wxLogMessage("length - value.length() < 0");
             return;
@@ -711,14 +708,14 @@ void InitialController::create_binds()
         value.Trim(true);
         value.Trim(false);
 
-        if(initial_value != nullptr && 
-            (value.length() == 0 || value.find_first_not_of(char_includes) != wxNOT_FOUND))
+        if(attr.initial_value != nullptr && 
+            (value.length() == 0 || value.find_first_not_of(attr.char_includes) != wxNOT_FOUND))
         {
-            value = initial_value;
+            value = attr.initial_value;
         }
 
-        if(pad_info[0] == 'R') value.append(length - value.length(), pad_info[1]);
-        else if(pad_info[0] == 'L') value.insert(0, length - value.length(), pad_info[1]);
+        if(attr.pad_info[0] == 'R')      value.append(   attr.length - value.length(), attr.pad_info[1]);
+        else if(attr.pad_info[0] == 'L') value.insert(0, attr.length - value.length(), attr.pad_info[1]);
 
         grid->SetCellValue(row, col, value);
         
@@ -726,22 +723,22 @@ void InitialController::create_binds()
 
     F()->get_grid_header()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_header(), fb.get_fb_header_info());
+        LambdaOnChangedGridCellValue(event, F()->get_grid_header(), fb.get_fb_header_attrs());
     });
 
     F()->get_grid_data()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_data(), fb.get_fb_data_info());
+        LambdaOnChangedGridCellValue(event, F()->get_grid_data(), fb.get_fb_data_attrs());
     });   
 
     F()->get_grid_trailer()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_trailer(), fb.get_fb_trailer_info());
+        LambdaOnChangedGridCellValue(event, F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
     });
 
     F()->get_grid_end()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_end(), fb.get_fb_end_info());
+        LambdaOnChangedGridCellValue(event, F()->get_grid_end(), fb.get_fb_end_attrs());
     });
 
 }
