@@ -3,7 +3,7 @@
 
 #include "../Controller.h"
 #include "../../view/initial/InitialFrame.h"
-#include "../../model/FBDataParser.h"
+#include "../../model/FBParser.h"
 
 class InitialController final : public Controller
 {
@@ -18,7 +18,7 @@ private:
     void reset_grid();
 
     InitialFrame* get_casted_frame(){ return (InitialFrame*) frame; }
-    FBDataParser fb;
+    FBParser fb;
 };
 
 

@@ -152,10 +152,10 @@ void InitialController::create_binds()
         if(fb.get_fb_trailer_row_size() != 1) {wxLogMessage("fb.get_fb_trailer_row_size() != 1"); return;}
         if(fb.get_fb_end_row_size()     != 1) {wxLogMessage("fb.get_fb_end_row_size()     != 1"); return;}
 
-        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
-        LambdaFBPaserRead(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBDataParser::get_fb_data_value,    &FBDataParser::get_fb_data_row_size);
-        LambdaFBPaserRead(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBDataParser::get_fb_trailer_value, &FBDataParser::get_fb_trailer_row_size);
-        LambdaFBPaserRead(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBDataParser::get_fb_end_value,     &FBDataParser::get_fb_end_row_size);
+        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBParser::get_fb_header_value,  &FBParser::get_fb_header_row_size);
+        LambdaFBPaserRead(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBParser::get_fb_data_value,    &FBParser::get_fb_data_row_size);
+        LambdaFBPaserRead(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBParser::get_fb_trailer_value, &FBParser::get_fb_trailer_row_size);
+        LambdaFBPaserRead(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBParser::get_fb_end_value,     &FBParser::get_fb_end_row_size);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
@@ -250,10 +250,10 @@ void InitialController::create_binds()
         wxFileDialog fdialog(F(), "FBデータの保存", wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
-        LambdaFBPaserWrite(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBDataParser::assign_fb_data_line,    &FBDataParser::set_fb_data_value);
-        LambdaFBPaserWrite(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBDataParser::assign_fb_trailer_line, &FBDataParser::set_fb_trailer_value);
-        LambdaFBPaserWrite(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBDataParser::assign_fb_end_line,     &FBDataParser::set_fb_end_value);
+        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBParser::assign_fb_header_line,  &FBParser::set_fb_header_value);
+        LambdaFBPaserWrite(F()->get_grid_data(),    fb.get_fb_data_attrs(),    &fb, &FBParser::assign_fb_data_line,    &FBParser::set_fb_data_value);
+        LambdaFBPaserWrite(F()->get_grid_trailer(), fb.get_fb_trailer_attrs(), &fb, &FBParser::assign_fb_trailer_line, &FBParser::set_fb_trailer_value);
+        LambdaFBPaserWrite(F()->get_grid_end(),     fb.get_fb_end_attrs(),     &fb, &FBParser::assign_fb_end_line,     &FBParser::set_fb_end_value);
 
         if(fb.get_fb_header_row_size()  != 1) {wxLogMessage("fb.get_fb_header_row_size()  != 1"); return;}
         if(fb.get_fb_data_row_size()    <= 0) {wxLogMessage("fb.get_fb_data_row_size()    <= 0"); return;}
@@ -318,7 +318,7 @@ void InitialController::create_binds()
 
         const int torikumibi_col = 5; 
         auto value = F()->get_grid_header()->GetCellValue(0, torikumibi_col);
-        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::get_fb_header_value,  &FBDataParser::get_fb_header_row_size);
+        LambdaFBPaserRead(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBParser::get_fb_header_value,  &FBParser::get_fb_header_row_size);
         F()->get_grid_header()->SetCellValue(0, torikumibi_col, value);
     };
 
@@ -342,7 +342,7 @@ void InitialController::create_binds()
         wxFileDialog fdialog(F(), "プリセット保存", "./preset/", wxEmptyString, "PRESET files (*.preset)|*.preset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBDataParser::assign_fb_header_line,  &FBDataParser::set_fb_header_value);
+        LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBParser::assign_fb_header_line,  &FBParser::set_fb_header_value);
         fb.assign_fb_data_line(0);
         fb.assign_fb_trailer_line(0);
         fb.assign_fb_end_line(0);
