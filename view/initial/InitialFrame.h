@@ -25,6 +25,8 @@ enum ID_MENU
     ID_MENU_DATA_SEARCH_BOX,
     ID_MENU_DATA_SEARCH_FORWARD,
     ID_MENU_DATA_SEARCH_BACKWARD,
+
+    ID_MENU_HELP_ABOUT,
 };
 
 class InitialFrame final : public wxFrame
@@ -32,10 +34,17 @@ class InitialFrame final : public wxFrame
 public:
     InitialFrame();
 
+    void force_refresh()
+    {
+        panel_top->GetSizer()->Layout();
+        Refresh();
+    };
+
     wxMenuBar *get_menu_bar();
     wxMenu *get_menu_file();
     wxMenu *get_menu_edit();
     wxMenu *get_menu_search();
+    wxMenu *get_menu_help();
 
     wxPanel *get_panel_top();
 
@@ -60,6 +69,7 @@ private:
     wxMenu *menu_file;
     wxMenu *menu_edit;
     wxMenu *menu_search;
+    wxMenu *menu_help;
 
     wxPanel *panel_top;
 

@@ -57,8 +57,7 @@ public:
     const FBAttrs& get_fb_end_attrs()    { return m_fb_end_attrs; }
 
     void set_fb_sohfuri();
-    void set_fb_kyuyo();
-    void set_fb_shoyo();
+    void set_fb_kyuyo_shoyo();
     void set_fb_furikae();
 
 private:
@@ -85,15 +84,10 @@ private:
     static const FBAttrs fb_trailer_attrs_sohfuri;
     static const FBAttrs fb_end_attrs_sohfuri;
 
-    static const FBAttrs fb_header_attrs_kyuyo;
-    static const FBAttrs fb_data_attrs_kyuyo;
-    static const FBAttrs fb_trailer_attrs_kyuyo;
-    static const FBAttrs fb_end_attrs_kyuyo;
-
-    static const FBAttrs fb_header_attrs_shoyo;
-    static const FBAttrs fb_data_attrs_shoyo;
-    static const FBAttrs fb_trailer_attrs_shoyo;
-    static const FBAttrs fb_end_attrs_shoyo;
+    static const FBAttrs fb_header_attrs_kyuyo_shoyo;
+    static const FBAttrs fb_data_attrs_kyuyo_shoyo;
+    static const FBAttrs fb_trailer_attrs_kyuyo_shoyo;
+    static const FBAttrs fb_end_attrs_kyuyo_shoyo;
 };
 
 #endif //FBDATAPARSER_H

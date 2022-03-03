@@ -3,6 +3,7 @@
 #include "wx/richtooltip.h"
 #include "wx/valtext.h"
 
+
 void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler)
 {
     wxGridCellTextEditor::Create(parent, id, evtHandler);
@@ -21,10 +22,13 @@ void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandle
         
         if(pos == Text()->GetLastPosition() && (key == WXK_DOWN || key == WXK_RIGHT))
         {
+            if(m_isShowedTip) return;
+            m_isShowedTip = true;
+            
             wxRichToolTip tip(m_label, m_description);
             tip.SetIcon(wxICON_INFORMATION);
-            tip.SetTimeout(5000);
-            tip.ShowFor(Text());            
+            tip.SetTimeout(0);
+            tip.ShowFor(Text());    
         }
     });
     
@@ -46,6 +50,8 @@ void trimGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
     Text()->SetFocus();
 
     Text()->Show();
+
+    m_isShowedTip = false;
 
 }
 

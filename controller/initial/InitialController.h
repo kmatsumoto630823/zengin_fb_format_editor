@@ -16,10 +16,10 @@ private:
     void create_binds() override;
 
     void reset_grid();
+    bool is_edited();
 
     InitialFrame* get_casted_frame(){ return (InitialFrame*) frame; }
     FBParser fb;
 };
-
 
 #endif //INITIALCONTROLLER_H

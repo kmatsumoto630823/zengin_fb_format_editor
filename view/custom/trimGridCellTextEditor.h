@@ -2,7 +2,6 @@
 #define _TRIM_GENERIC_GRID_EDITORS_H_
 
 #include "wx/grid.h"
-#include "wx/log.h"
 
 class trimGridCellTextEditor : public wxGridCellTextEditor
 {
@@ -21,6 +20,7 @@ private:
     wxString m_char_includes;
     wxString m_label;
     wxString m_description;
+    bool m_isShowedTip;
 };
 
 #endif // _TRIM_GENERIC_GRID_EDITORS_H_

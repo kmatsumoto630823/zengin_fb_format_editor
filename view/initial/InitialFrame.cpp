@@ -16,34 +16,39 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
 
     // MENU FILE
     menu_file = new wxMenu;
-    menu_file->Append(ID_MENU_NEW, "&新規作成\tCtrl+N");
-    menu_file->Append(ID_MENU_OPEN, "&FBデータを開く\tCtrl+O");
-    menu_file->Append(ID_MENU_SAVEAS, "&名前をつけて保存\tCtrl+S");
+    menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N");
+    menu_file->Append(ID_MENU_OPEN, "FBデータを開く");
+    menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存");
     menu_file->AppendSeparator();
-    menu_file->Append(ID_MENU_EXIT, "&終了\tCtrl+Q");
+    menu_file->Append(ID_MENU_EXIT, "終了\tCtrl+Q");
 
     // MENU EDIT
     menu_edit = new wxMenu;
-    menu_edit->Append(ID_MENU_HEADER_IMPORT, "&＠ヘッダーレコード：プリセット選択");
-    menu_edit->Append(ID_MENU_HEADER_EXPORT, "&＠ヘッダーレコード：プリセット出力");
+    menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択");
+    menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：プリセット出力");
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_DATA_ADD, "&＠データレコード：行追");
-    menu_edit->Append(ID_MENU_DATA_DELETE,"&＠データレコード：行削\tDelete");
+    menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追");
+    menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete");
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"&＠トレーラーレコード：再計算");
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算");
 
     // MENU SEARCH
     menu_search = new wxMenu;
-    menu_search->Append(ID_MENU_DATA_SEARCH_BOX,"＠データレコード：検索ボックス\tCtrl+F");
+    menu_search->Append(ID_MENU_DATA_SEARCH_BOX,"＠データ：検索ボックス\tCtrl+F");
     menu_search->AppendSeparator();
-    menu_search->Append(ID_MENU_DATA_SEARCH_FORWARD, "＠データレコード：次検索\tF3");
-    menu_search->Append(ID_MENU_DATA_SEARCH_BACKWARD, "＠データレコード：前検索\tShift+F3");
+    menu_search->Append(ID_MENU_DATA_SEARCH_FORWARD, "＠データ：次検索\tF3");
+    menu_search->Append(ID_MENU_DATA_SEARCH_BACKWARD, "＠データ：前検索\tShift+F3");
+
+    // MENU HELP
+    menu_help = new wxMenu;
+    menu_help->Append(ID_MENU_HELP_ABOUT, "このアプリについて");
 
     // MENU BAR
     menu_bar = new wxMenuBar;
-    menu_bar->Append(menu_file, "&ファイル");
-    menu_bar->Append(menu_edit, "&編集");
-    menu_bar->Append(menu_search, "&検索");
+    menu_bar->Append(menu_file, "ファイル(&F)");
+    menu_bar->Append(menu_edit, "編集(&E)");
+    menu_bar->Append(menu_search, "検索(&S)");
+    menu_bar->Append(menu_help, "ヘルプ(&H)");
     SetMenuBar(menu_bar);
 
     // TOP PANEL
@@ -107,7 +112,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     panel_top->SetSizer(sizer_top);
         auto sizer_header_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_header_label, 0, wxALIGN_LEFT);
-            sizer_header_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠ヘッダーレコード：　"), 0, wxALIGN_BOTTOM);
+            sizer_header_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠ヘッダレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_header_label->Add(button_header_import, 0, wxALIGN_BOTTOM);
             sizer_header_label->Add(button_header_export, 0, wxALIGN_BOTTOM);
         sizer_top->Add(grid_header, 0, wxALIGN_LEFT | wxBOTTOM, 10);
@@ -124,7 +129,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
 
         auto sizer_trailer_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_trailer_label, 0, wxALIGN_LEFT);
-            sizer_trailer_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠トレーラーレコード：　"), 0, wxALIGN_BOTTOM);
+            sizer_trailer_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠トレーラレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_trailer_label->Add(button_trailer_recalculate, 0, wxALIGN_BOTTOM);
         sizer_top->Add(grid_trailer, 0, wxALIGN_LEFT | wxBOTTOM, 10);
 
@@ -158,6 +163,13 @@ wxMenu *InitialFrame::get_menu_search()
 {
     return menu_search;
 }
+
+/*
+wxMenu *InitialFrame::get_menu_format()
+{
+    return menu_format;
+}
+*/
 
 wxPanel *InitialFrame::get_panel_top()
 {

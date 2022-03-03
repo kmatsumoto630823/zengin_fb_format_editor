@@ -1,5 +1,6 @@
 #include "InitialController.h"
 #include <wx/log.h>
+#include <wx/aboutdlg.h>
 
 #define F() (InitialController::get_casted_frame())
 
@@ -46,12 +47,13 @@ void InitialController::reset_grid()
 
         for(const auto &attr : fb_attrs)
         {
-           auto col = attr.num;
-           auto value = wxString(attr.length, attr.pad_info[1]);
+            auto col = attr.num;
+            auto row = grid->GetNumberRows() - 1;
+            auto value = wxString(attr.length, attr.pad_info[1]);
 
             if(attr.initial_value != nullptr) value = attr.initial_value;
 
-            grid->SetCellValue(grid->GetNumberRows() - 1, col, value);
+            grid->SetCellValue(row, col, value);
         }
 
         auto row = grid->GetNumberRows() - 1;
@@ -64,11 +66,44 @@ void InitialController::reset_grid()
         grid->AutoSize();
     };
 
-
     lambda_reset_grid(F()->get_grid_header(),  fb.get_fb_header_attrs());
     lambda_reset_grid(F()->get_grid_data(),    fb.get_fb_data_attrs());
     lambda_reset_grid(F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
     lambda_reset_grid(F()->get_grid_end(),     fb.get_fb_end_attrs());
+}
+
+bool InitialController::is_edited()
+{
+    auto lambda_is_edited = [](wxGrid * grid, const FBAttrs &fb_attrs)
+    {
+        if(grid->GetNumberRows() != 1) return false;
+
+        for(const auto &attr : fb_attrs)
+        {
+            auto col = attr.num;
+            auto row = grid->GetNumberRows() - 1;
+            auto value = grid->GetCellValue(row, col);
+
+            auto initial_value = wxString(attr.length, attr.pad_info[1]);
+            if(attr.initial_value != nullptr) initial_value = attr.initial_value;
+
+            if(value != initial_value) return true;
+        }
+
+        return false;
+    };
+
+    F()->get_grid_header()->SaveEditControlValue();
+    F()->get_grid_data()->SaveEditControlValue();
+    F()->get_grid_trailer()->SaveEditControlValue();
+    F()->get_grid_end()->SaveEditControlValue();
+
+    if(lambda_is_edited(F()->get_grid_header(),  fb.get_fb_header_attrs()))  return true;
+    if(lambda_is_edited(F()->get_grid_data(),    fb.get_fb_data_attrs()))    return true;
+    if(lambda_is_edited(F()->get_grid_trailer(), fb.get_fb_trailer_attrs())) return true;
+    if(lambda_is_edited(F()->get_grid_end(),     fb.get_fb_end_attrs()))     return true;
+
+    return false;
 }
 
 void InitialController::create_frame()
@@ -118,11 +153,41 @@ void InitialController::create_binds()
     // NEW
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
-        if(mdialog.ShowModal() == wxID_CANCEL) return;
-        
+        if(is_edited())
+        {
+            wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
+            if(mdialog.ShowModal() == wxID_CANCEL) return;
+        }
+
+        enum {
+            SOHFURI = 0,
+            KYUYO_SHOYO = 1,
+        };
+
+        const wxString format_selection_strings[] = {
+            "総合振込",
+            "給与・賞与振込",
+        };
+
+        wxSingleChoiceDialog scdialog(F(), "フォーマットを選択してください", "選択", std::size(format_selection_strings) , format_selection_strings);
+        scdialog.SetSelection(SOHFURI);
+
+        if(scdialog.ShowModal() == wxID_CANCEL) return;
+
+        switch(scdialog.GetSelection())
+        {
+            case SOHFURI:
+                fb.set_fb_sohfuri();
+                break;
+            
+            case KYUYO_SHOYO:
+                fb.set_fb_kyuyo_shoyo();
+                break;
+        }
+
         reset_grid();
-        
+        F()->force_refresh();
+
     }, ID_MENU_NEW);
 
     // OPEN
@@ -130,12 +195,15 @@ void InitialController::create_binds()
     {
         auto path = default_path;
 
-        wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
-        if(mdialog.ShowModal() == wxID_CANCEL) return;
+        if(is_edited())
+        {
+            wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
+            if(mdialog.ShowModal() == wxID_CANCEL) return;
+        }
 
         if(path.empty())
         {
-            wxFileDialog fdialog(F(), "FBデータの選択",wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt");
+            wxFileDialog fdialog(F(), "FBデータの選択",wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*");
             if(fdialog.ShowModal() == wxID_CANCEL) return;
 
             path = fdialog.GetPath();
@@ -219,9 +287,9 @@ void InitialController::create_binds()
         
         enum {
             NEWLINE_CRLF = 0,
-            NEWLINE_CR = 1,
-            NEWLINE_LF = 2,
-            NEWLINE_NONE =3
+            NEWLINE_CR   = 1,
+            NEWLINE_LF   = 2,
+            NEWLINE_NONE = 3
         };
         
         const wxString newline_codes[] = {
@@ -247,7 +315,7 @@ void InitialController::create_binds()
         auto &code = newline_codes[scdialog.GetSelection()];
         fb.set_fb_newline_code(code.ToStdString());
         
-        wxFileDialog fdialog(F(), "FBデータの保存", wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxFileDialog fdialog(F(), "FBデータの保存", wxEmptyString, wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
         LambdaFBPaserWrite(F()->get_grid_header(),  fb.get_fb_header_attrs(),  &fb, &FBParser::assign_fb_header_line,  &FBParser::set_fb_header_value);
@@ -269,28 +337,31 @@ void InitialController::create_binds()
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
         LambdaOnSaveAs();
-        F()->Refresh();
+        F()->force_refresh();
 
     }, ID_MENU_SAVEAS);
 
      // EXIT
-    auto LambdaOnExit = [](wxFrame *frame)
+    auto LambdaOnExit = [=]()
     {
-        wxMessageDialog mdialog(frame, "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
-        if(mdialog.ShowModal() == wxID_CANCEL) return;
+        if(is_edited())
+        {
+            wxMessageDialog mdialog(frame, "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
+            if(mdialog.ShowModal() == wxID_CANCEL) return;
+        }
 
         frame->Destroy();
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnExit(F());
+        LambdaOnExit();
 
     }, ID_MENU_EXIT);
 
     F()->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent& event)
     {
-        LambdaOnExit(F());
+        LambdaOnExit();
     });
 
 
@@ -362,14 +433,13 @@ void InitialController::create_binds()
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
         LambdaOnHeaderExport(); 
-        F()->Refresh();
-
+        F()->force_refresh();
     }, ID_MENU_HEADER_EXPORT);
 
     F()->get_button_header_export()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
         LambdaOnHeaderExport();
-        F()->Refresh();    
+        F()->force_refresh(); 
     });
 
 
@@ -689,7 +759,42 @@ void InitialController::create_binds()
     F()->get_button_trailer_recalculated()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
         LambdaOnTrailerRecalculate(F()->get_grid_data(), fb.get_fb_data_attrs(), F()->get_grid_trailer(), fb.get_fb_trailer_attrs());
-    });    
+    });
+
+    F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
+    {
+        wxAboutDialogInfo aboutInfo;
+        aboutInfo.SetName("Zengin FB Format Editor");
+        aboutInfo.SetVersion("1.0.1");
+        aboutInfo.SetDescription("全銀協が定めるFBデータ（固定長フォーマット）を編集するためのアプリです");
+        aboutInfo.SetCopyright("(C) 2022-2022 kmatsumoto630823");
+        aboutInfo.SetWebSite("https://github.com/kmatsumoto630823/zengin_fb_format_editor/");
+        aboutInfo.AddDeveloper("kmatsumoto630823");
+        aboutInfo.SetLicence(R"***(MIT License
+
+Copyright (c) 2022 kmatsumoto630823
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.)***");
+
+        wxAboutBox(aboutInfo, F());
+    }, ID_MENU_HELP_ABOUT);
+
 
     auto LambdaOnChangedGridCellValue = [](wxGridEvent& event, wxGrid *grid, const FBAttrs &fb_attrs)
     {

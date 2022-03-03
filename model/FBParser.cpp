@@ -253,23 +253,10 @@ void FBParser::set_fb_sohfuri()
     m_fb_end_attrs = fb_end_attrs_sohfuri;
 }
 
-void FBParser::set_fb_kyuyo()
+void FBParser::set_fb_kyuyo_shoyo()
 {
-    m_fb_header_attrs = fb_header_attrs_kyuyo;
-    m_fb_data_attrs = fb_data_attrs_kyuyo;
-    m_fb_trailer_attrs = fb_trailer_attrs_kyuyo;
-    m_fb_end_attrs = fb_end_attrs_kyuyo;
-}
-
-void FBParser::set_fb_shoyo()
-{
-    m_fb_header_attrs = fb_header_attrs_shoyo;
-    m_fb_data_attrs = fb_data_attrs_shoyo;
-    m_fb_trailer_attrs = fb_trailer_attrs_shoyo;
-    m_fb_end_attrs = fb_end_attrs_shoyo;
-}
-
-void FBParser::set_fb_furikae()
-{
-
+    m_fb_header_attrs = fb_header_attrs_kyuyo_shoyo;
+    m_fb_data_attrs = fb_data_attrs_kyuyo_shoyo;
+    m_fb_trailer_attrs = fb_trailer_attrs_kyuyo_shoyo;
+    m_fb_end_attrs = fb_end_attrs_kyuyo_shoyo;
 }
