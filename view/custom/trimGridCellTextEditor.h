@@ -1,5 +1,5 @@
-#ifndef _TRIM_GENERIC_GRID_EDITORS_H_
-#define _TRIM_GENERIC_GRID_EDITORS_H_
+#ifndef _TRIM_GRID_CELL_TEXT_EDITORS_H_
+#define _TRIM_GRID_CELL_TEXT_EDITORS_H_
 
 #include "wx/grid.h"
 
@@ -23,4 +23,4 @@ private:
     bool m_isShowedTip;
 };
 
-#endif // _TRIM_GENERIC_GRID_EDITORS_H_
+#endif // _TRIM_GRID_CELL_TEXT_EDITORS_H_

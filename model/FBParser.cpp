@@ -146,6 +146,7 @@ bool FBParser::open_fb_file(const std::string &path)
             {
                 if(attr.initial_value == nullptr || fb_str_sub != std::string_view(attr.initial_value)){
                     wxLogMessage("fb_str_sub.find_first_not_of(char_includes) != std::string_view::npos");
+                    wxLogMessage(wxString(wxT("invalid value : ") + std::string(fb_str_sub)));
                     return false;
                 }
             }
