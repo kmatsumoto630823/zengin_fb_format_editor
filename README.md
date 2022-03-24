@@ -1,8 +1,7 @@
 # Zengin FB Format Editor
 全銀協が定めるFBデータ（固定長）を編集するエディタ
 
-総振、給与振込、賞与振込に対応
-※口座振替は実装予定
+総振、給与振込、賞与振込、口座振替に対応
 
 # Description
 
@@ -38,7 +37,7 @@
 # Dependencies
 下記の環境でビルド
 - WxWidgets-3.1.5
-- Windows 10
+- Windows 1
 - gcc/MinGW 11.2.0/9.0.0
 
 # Author
