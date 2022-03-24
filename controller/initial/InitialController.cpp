@@ -1,8 +1,9 @@
 #include "InitialController.h"
-#include <wx/log.h>
 #include "../../view/custom/myAboutDialogInfo.h"
+#include <wx/log.h>
 
 #define F() (InitialController::get_casted_frame())
+
 
 void InitialController::reset_grid()
 {
@@ -72,6 +73,7 @@ void InitialController::reset_grid()
     lambda_reset_grid(F()->get_grid_end(),     fb.get_fb_end_attrs());
 }
 
+
 bool InitialController::is_edited()
 {
     auto lambda_is_edited = [](wxGrid * grid, const FBAttrs &fb_attrs)
@@ -93,10 +95,7 @@ bool InitialController::is_edited()
         return false;
     };
 
-    F()->get_grid_header()->SaveEditControlValue();
-    F()->get_grid_data()->SaveEditControlValue();
-    F()->get_grid_trailer()->SaveEditControlValue();
-    F()->get_grid_end()->SaveEditControlValue();
+    save_editing_value();
 
     if(lambda_is_edited(F()->get_grid_header(),  fb.get_fb_header_attrs()))  return true;
     if(lambda_is_edited(F()->get_grid_data(),    fb.get_fb_data_attrs()))    return true;
@@ -106,35 +105,92 @@ bool InitialController::is_edited()
     return false;
 }
 
-void InitialController::create_frame()
+void InitialController::save_editing_value()
+{
+    F()->get_grid_header()->SaveEditControlValue();
+    F()->get_grid_data()->SaveEditControlValue();
+    F()->get_grid_trailer()->SaveEditControlValue();
+    F()->get_grid_end()->SaveEditControlValue();
+}
+
+void InitialController::switch_format(zengin_format format)
+{
+    switch(format)
+    {
+        case SOHFURI:
+            fb.set_fb_sohfuri();
+            F()->SetStatusText("フォーマット；総合振込");
+            break;
+
+        case KYUYO_SHOYO:
+            fb.set_fb_kyuyo_shoyo();
+            F()->SetStatusText("フォーマット：給与・賞与振込");
+            break;
+
+        case FURIKAE:
+            fb.set_fb_furikae();
+            F()->SetStatusText("フォーマット：預金口座振替");
+            break;
+
+        default:
+            return;
+    }
+
+    reset_grid();
+}
+
+void InitialController::initialize()
+{
+    wxFileConfig config
+    (
+        wxEmptyString,
+        wxEmptyString,
+        "config.ini",
+        wxEmptyString,
+        wxCONFIG_USE_LOCAL_FILE | wxCONFIG_USE_RELATIVE_PATH,
+        wxCSConv("cp932")
+    );
+
+    config.SetPath("/");
+
+    create_frame(config);
+    create_binds(config);
+}
+
+void InitialController::create_frame(wxFileConfig &config)
 {
     this->frame = new InitialFrame();
 
     F()->get_button_header_export()->Hide();
 
-    reset_grid();
+    auto format = (zengin_format)config.Read("FORMAT", SOHFURI);
+    switch_format(format);
 
-    F()->SetSize(wxSize(1600, 900));
+    auto w = config.Read("WINDOW_WIDTH", 1600);
+    auto h = config.Read("WINDOW_HEIGHT", 900);
+    F()->SetSize(wxSize(w, h));
 }
 
-void InitialController::create_binds()
+void InitialController::create_binds(wxFileConfig &config)
 {
-    auto LambdaFBPaserRead = [](wxGrid *grid, const FBAttrs &fb_attrs, auto fb, auto get_fb_value, auto get_fb_row_size)
+    auto LambdaFBPaserRead = [](wxGrid *grid, const FBAttrs &fb_attrs, FBParser *fb, auto get_fb_value, auto get_fb_row_size)
     {
         if(grid->GetNumberRows() != 0) grid->DeleteRows(0, grid->GetNumberRows());
         grid->AppendRows((fb->*get_fb_row_size)());
 
-        for(int row = 0; row < (fb->*get_fb_row_size)(); row++)
+        const auto max_row = (fb->*get_fb_row_size)();
+        for(int row = 0; row < max_row; row++)
         {
             for(const auto &attr : fb_attrs)
             {
                 auto col = attr.num;
-                grid->SetCellValue(row, col, wxString((fb->*get_fb_value)(row, col).data(), attr.length));
+                auto value = wxString((fb->*get_fb_value)(row, col).data(), wxCSConv("cp932"), attr.length);
+                grid->SetCellValue(row, col, value);
             }
         }
     };
 
-    auto LambdaFBPaserWrite = [](wxGrid *grid, const FBAttrs &fb_attrs, auto fb, auto assign_fb_line, auto set_fb_value)
+    auto LambdaFBPaserWrite = [](wxGrid *grid, const FBAttrs &fb_attrs, FBParser *fb, auto assign_fb_line, auto set_fb_value)
     {
         auto row_size = grid->GetNumberRows();
         (fb->*assign_fb_line)(row_size);
@@ -144,8 +200,8 @@ void InitialController::create_binds()
             for(const auto &attr : fb_attrs)
             {
                 auto col = attr.num;
-                auto value = grid->GetCellValue(row, col);
-                (fb->*set_fb_value)(row, col, value.ToStdString());
+                std::string value = (const char *)grid->GetCellValue(row, col).mb_str(wxCSConv("cp932"));
+                (fb->*set_fb_value)(row, col, value);
             }
         }
     };
@@ -159,33 +215,19 @@ void InitialController::create_binds()
             if(mdialog.ShowModal() == wxID_CANCEL) return;
         }
 
-        enum {
-            SOHFURI = 0,
-            KYUYO_SHOYO = 1,
-        };
-
-        const wxString format_selection_strings[] = {
-            "総合振込",
-            "給与・賞与振込",
-        };
+        wxString format_selection_strings[3];
+        format_selection_strings[SOHFURI] = "総合振込";
+        format_selection_strings[KYUYO_SHOYO] = "給与・賞与振込";
+        format_selection_strings[FURIKAE] = "預金口座振替";
 
         wxSingleChoiceDialog scdialog(F(), "フォーマットを選択してください", "選択", std::size(format_selection_strings) , format_selection_strings);
         scdialog.SetSelection(SOHFURI);
 
         if(scdialog.ShowModal() == wxID_CANCEL) return;
 
-        switch(scdialog.GetSelection())
-        {
-            case SOHFURI:
-                fb.set_fb_sohfuri();
-                break;
-            
-            case KYUYO_SHOYO:
-                fb.set_fb_kyuyo_shoyo();
-                break;
-        }
+        auto format = (zengin_format) scdialog.GetSelection();
+        switch_format(format);
 
-        reset_grid();
         F()->force_refresh();
 
     }, ID_MENU_NEW);
@@ -246,10 +288,7 @@ void InitialController::create_binds()
     // SAVEAS
     auto LambdaOnSaveAs = [=]()
     {
-        F()->get_grid_header()->SaveEditControlValue();
-        F()->get_grid_data()->SaveEditControlValue();
-        F()->get_grid_trailer()->SaveEditControlValue();
-        F()->get_grid_end()->SaveEditControlValue();
+        save_editing_value();
 
         if(F()->get_grid_trailer()->GetNumberRows() != 1)
         {
@@ -292,14 +331,14 @@ void InitialController::create_binds()
             NEWLINE_NONE = 3
         };
         
-        const wxString newline_codes[] = {
+        static const wxString newline_codes[] = {
             "\r\n",
             "\r",
             "\n",
             ""
         };
 
-        const wxString newline_code_selection_strings[] = {
+        static const wxString newline_code_selection_strings[] = {
             "CRLF(デフォルト)",
             "CR",
             "LF",
@@ -496,7 +535,7 @@ void InitialController::create_binds()
 
         wxString massage;        
         massage += "レコード";
-        for(const auto &i : selected) massage += '[' + wxString::Format(wxT("%i"), i + 1) + ']';      
+        for(const auto &i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
         massage += "を削除します";
 
         wxMessageDialog mdialog(grid, massage, "確認", wxOK | wxCANCEL);
@@ -699,14 +738,14 @@ void InitialController::create_binds()
 
         wxString massage;
         massage += "差分：　";
-        massage += wxString::Format(wxT("%lld"), sum_kensu - sum_kensu_old) + "件　";
-        massage += wxString::Format(wxT("%lld"), sum_kingaku - sum_kingaku_old) + "円　";
+        massage += wxString::Format("%lld", sum_kensu - sum_kensu_old) + "件　";
+        massage += wxString::Format("%lld", sum_kingaku - sum_kingaku_old) + "円　";
 
         wxMessageDialog mdialog(grid_trailer, massage, "情報", wxOK);
         mdialog.ShowModal();
 
-        auto sum_kingaku_str = wxString::Format(wxT("%lld"), sum_kingaku);
-        auto sum_kensu_str   = wxString::Format(wxT("%lld"), sum_kensu);
+        auto sum_kingaku_str = wxString::Format("%lld", sum_kingaku);
+        auto sum_kensu_str   = wxString::Format("%lld", sum_kensu);
 
         {
             auto &value = sum_kensu_str;

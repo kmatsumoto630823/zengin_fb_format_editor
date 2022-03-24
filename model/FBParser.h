@@ -88,6 +88,11 @@ private:
     static const FBAttrs fb_data_attrs_kyuyo_shoyo;
     static const FBAttrs fb_trailer_attrs_kyuyo_shoyo;
     static const FBAttrs fb_end_attrs_kyuyo_shoyo;
+
+    static const FBAttrs fb_header_attrs_furikae;
+    static const FBAttrs fb_data_attrs_furikae;
+    static const FBAttrs fb_trailer_attrs_furikae;
+    static const FBAttrs fb_end_attrs_furikae;
 };
 
 #endif //FBDATAPARSER_H

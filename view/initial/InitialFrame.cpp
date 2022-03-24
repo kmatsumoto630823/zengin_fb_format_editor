@@ -9,6 +9,9 @@
 #include <wx/menu.h>
 #include <wx/stattext.h>
 #include <wx/sizer.h>
+
+#include <wx/artprov.h>
+
 #include <wx/log.h>
 
 InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor")
@@ -16,39 +19,39 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
 
     // MENU FILE
     menu_file = new wxMenu;
-    menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N");
+    menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU));
     menu_file->Append(ID_MENU_OPEN, "FBデータを開く");
     menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存");
     menu_file->AppendSeparator();
-    menu_file->Append(ID_MENU_EXIT, "終了\tCtrl+Q");
+    menu_file->Append(ID_MENU_EXIT, "終了\tCtrl+Q")->SetBitmap(wxArtProvider::GetBitmap(wxART_CLOSE, wxART_MENU));
 
     // MENU EDIT
     menu_edit = new wxMenu;
-    menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択");
-    menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：プリセット出力");
+    menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_MENU));
+    menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：プリセット出力")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追");
-    menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete");
+    menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_MENU));
+    menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete")->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算");
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_MENU));
 
     // MENU SEARCH
     menu_search = new wxMenu;
-    menu_search->Append(ID_MENU_DATA_SEARCH_BOX,"＠データ：検索ボックス\tCtrl+F");
+    menu_search->Append(ID_MENU_DATA_SEARCH_BOX,"＠データ：検索ボックス\tCtrl+F")->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU));
     menu_search->AppendSeparator();
-    menu_search->Append(ID_MENU_DATA_SEARCH_FORWARD, "＠データ：次検索\tF3");
-    menu_search->Append(ID_MENU_DATA_SEARCH_BACKWARD, "＠データ：前検索\tShift+F3");
+    menu_search->Append(ID_MENU_DATA_SEARCH_FORWARD, "＠データ：次検索\tF3")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_MENU));
+    menu_search->Append(ID_MENU_DATA_SEARCH_BACKWARD, "＠データ：前検索\tShift+F3")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_MENU));;
 
     // MENU HELP
     menu_help = new wxMenu;
-    menu_help->Append(ID_MENU_HELP_ABOUT, "このアプリについて");
+    menu_help->Append(ID_MENU_HELP_ABOUT, "このアプリについて")->SetBitmap(wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_MENU));
 
     // MENU BAR
     menu_bar = new wxMenuBar;
     menu_bar->Append(menu_file, "ファイル(&F)");
     menu_bar->Append(menu_edit, "編集(&E)");
     menu_bar->Append(menu_search, "検索(&S)");
-    menu_bar->Append(menu_help, "ヘルプ(&H)");
+    menu_bar->Append(menu_help, "情報(&H)");
     SetMenuBar(menu_bar);
 
     // TOP PANEL
@@ -68,7 +71,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     grid_header->DisableDragRowSize();
     grid_header->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択");
+    button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_BUTTON));
     button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力");
 
     //GRID_DATA
@@ -81,11 +84,11 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     grid_data->SetScrollLineY(grid_data->GetScrollLineY()/2);
     grid_data->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_data_add = new wxButton(panel_top, wxID_ANY, "＋行追");
-    button_data_delete = new wxButton(panel_top, wxID_ANY, "－行削");
+    button_data_add = new wxButton(panel_top, wxID_ANY, "行追"); button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_BUTTON));
+    button_data_delete = new wxButton(panel_top, wxID_ANY, "行削"); button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_BUTTON));
     searchctrl_data_search = new wxSearchCtrl(panel_top, wxID_ANY);
-    button_data_search_forward = new wxButton(panel_top, wxID_ANY, "次検索");
-    button_data_search_backward = new wxButton(panel_top, wxID_ANY, "前検索");
+    button_data_search_forward = new wxButton(panel_top, wxID_ANY, "次検索"); button_data_search_forward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_BUTTON));
+    button_data_search_backward = new wxButton(panel_top, wxID_ANY, "前検索"); button_data_search_backward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_BUTTON));
 
     //GRID_TRAILER
     grid_trailer = new wxGrid(panel_top, wxID_ANY);
@@ -96,7 +99,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     grid_trailer->DisableDragRowSize();
     grid_trailer->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算");
+    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_BUTTON));
 
     //GRID_END
     grid_end = new wxGrid(panel_top, wxID_ANY);
@@ -141,7 +144,6 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
 
     // STATUS
     CreateStatusBar();
-    SetStatusText("Welcome to this app!");
 }
 
 wxMenu *InitialFrame::get_menu_file()

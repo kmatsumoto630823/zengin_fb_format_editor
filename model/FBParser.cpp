@@ -14,38 +14,6 @@ FBParser::FBParser() : m_null_str("")
 {
     m_newline_code = "\r\n";
 
-    for(const auto &attr : FBParser::m_fb_header_attrs){
-        if(attr.initial_value != nullptr){
-            if(attr.length != std::string_view(attr.initial_value).length()){
-                wxLogMessage("length != std::string_view(initial_value).length()");
-            }
-        }
-    }
-
-    for(const auto &attr : FBParser::m_fb_data_attrs){
-        if(attr.initial_value != nullptr){
-            if(attr.length != std::string_view(attr.initial_value).length()){
-                wxLogMessage("length != std::string_view(initial_value).length()");
-            }
-        }
-    }
-
-    for(const auto &attr : FBParser::m_fb_trailer_attrs){
-        if(attr.initial_value != nullptr){
-            if(attr.length != std::string_view(attr.initial_value).length()){
-                wxLogMessage("length != std::string_view(initial_value).length()");
-            }
-        }
-    }
-
-    for(const auto &attr : FBParser::m_fb_end_attrs){
-        if(attr.initial_value != nullptr){
-            if(attr.length != std::string_view(attr.initial_value).length()){
-                wxLogMessage("length != std::string_view(initial_value).length()");
-            }
-        }
-    }
-
     set_fb_sohfuri();
 }
 
@@ -260,4 +228,12 @@ void FBParser::set_fb_kyuyo_shoyo()
     m_fb_data_attrs = fb_data_attrs_kyuyo_shoyo;
     m_fb_trailer_attrs = fb_trailer_attrs_kyuyo_shoyo;
     m_fb_end_attrs = fb_end_attrs_kyuyo_shoyo;
+}
+
+void FBParser::set_fb_furikae()
+{
+    m_fb_header_attrs = fb_header_attrs_furikae;
+    m_fb_data_attrs = fb_data_attrs_furikae;
+    m_fb_trailer_attrs = fb_trailer_attrs_furikae;
+    m_fb_end_attrs = fb_end_attrs_furikae;
 }

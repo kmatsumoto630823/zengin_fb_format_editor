@@ -3,11 +3,11 @@
 myAboutDialogInfo::myAboutDialogInfo()
 {
     aboutinfo.SetName("Zengin FB Format Editor");
-    aboutinfo.SetVersion("1.0.1");
+    aboutinfo.SetVersion("1.0.2");
     aboutinfo.SetDescription("全銀協が定めるFBデータ（固定長フォーマット）を編集するためのアプリです");
     aboutinfo.SetCopyright("(C) 2022-2022 kmatsumoto630823");
     aboutinfo.SetWebSite("https://github.com/kmatsumoto630823/zengin_fb_format_editor/");
-    aboutinfo.AddDeveloper("kmatsumoto630823");
+    aboutinfo.AddDeveloper("kmatsumoto630823(k.matsumoto.s630823@gmail.com)");
     aboutinfo.SetLicence(
 R"***(MIT License
 
