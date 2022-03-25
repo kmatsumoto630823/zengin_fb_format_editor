@@ -11,6 +11,8 @@ Undo Redo機能
 
 埋め込んだ定数の外部ファイル化
 
+Makefileの作成
+
 
 
 
