@@ -13,7 +13,7 @@ Undo Redo機能
 
 Makefileの作成
 
-
+wxWidgets3.1.6がリリースされたので対応させる
 
 
 
