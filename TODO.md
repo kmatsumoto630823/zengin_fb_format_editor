@@ -15,6 +15,6 @@ Makefileの作成
 
 wxWidgets3.1.6がリリースされたので対応させる
 
-
+wxGridとFBParserのデータを抽象化して統一的に扱えないか
 
 
