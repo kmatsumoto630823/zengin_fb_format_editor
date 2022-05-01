@@ -14,7 +14,7 @@
 
 #include <wx/log.h>
 
-InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor")
+InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 {
 
     // MENU FILE
@@ -33,7 +33,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete")->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_MENU));
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
 
     // MENU SEARCH
     menu_search = new wxMenu;
@@ -99,7 +99,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     grid_trailer->DisableDragRowSize();
     grid_trailer->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_BUTTON));
+    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_BUTTON));
 
     //GRID_END
     grid_end = new wxGrid(panel_top, wxID_ANY);
@@ -146,14 +146,193 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "Zengin FB Format Editor"
     CreateStatusBar();
 }
 
-wxMenu *InitialFrame::get_menu_file()
+wxGridCellCoords InitialFrame::search_next_value(wxGrid *grid, const wxString &search_value, bool is_forward)
 {
-    return menu_file;
+    if(search_value.empty()) return {-1, -1};
+
+    if(grid->GetNumberCols() <= 0 || grid->GetNumberRows() <= 0)
+    {
+        wxLogMessage("grid->GetNumberCols() <= 0 || grid->GetNumberRows() <= 0");
+        return {-1, -1};
+    }
+
+    if(grid->GetGridCursorRow() < 0 || grid->GetGridCursorCol() < 0)
+    {
+        wxLogMessage("grid->GetGridCursorRow() < 0 || grid->GetGridCursorCol() < 0");
+        return {-1, -1};
+    }
+
+    const auto width = grid->GetNumberCols();
+    const auto height = grid->GetNumberRows();
+
+    const auto first_row = grid->GetGridCursorRow();
+    const auto first_col = grid->GetGridCursorCol();
+    
+    const auto first_value = grid->GetCellValue(first_row, first_col);
+
+    auto next = [d = (is_forward ? 1 : -1)](auto &pos)
+    {
+        pos += d;
+    };
+
+    auto current_pos = first_row * width + first_col;
+    if(first_value.find(search_value) != wxNOT_FOUND)
+    {
+        next(current_pos);
+    }
+    else
+    {
+        if(is_forward)
+        {
+            current_pos = 0;
+        }
+        else
+        {
+            current_pos = width * height - 1;
+        }
+        
+    }
+
+    while(true)
+    {
+        if(current_pos >= width * height) break;
+        if(current_pos <  0             ) break;
+            
+        auto current_row = current_pos / width;
+        auto current_col = current_pos % width;
+
+        auto current_value = grid->GetCellValue(current_row, current_col);
+        if(current_value.find(search_value) != wxNOT_FOUND)
+        {
+            grid->SetFocus();
+            grid->GoToCell(current_row, current_col);
+            return {current_row, current_col};
+        }
+
+        next(current_pos);
+    };
+
+    wxMessageDialog mdialog(grid, "見つかりませんでした", "情報", wxOK);
+    mdialog.ShowModal();
+
+    grid->SetFocus();
+    grid->GoToCell(first_row, first_col);
+    return {first_row, first_col};
+}
+
+void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
+{
+    if(auto h = grid->GetNumberRows(); h > 0) grid->DeleteRows(0, h);
+    if(auto w = grid->GetNumberCols(); w > 0) grid->DeleteCols(0, w);
+    
+    if(grid->GetNumberRows() != 0 || grid->GetNumberCols() != 0)
+    {
+        wxLogMessage("grid->GetNumberRows() != 0 || grid->GetNumberCols() != 0");
+        return;
+    }
+
+    grid->AppendCols(attrs.size());
+
+    for(auto &attr : attrs)
+    {
+        auto col = attr.num;
+
+        grid->SetColLabelValue(col, attr.label);
+
+        auto col_attr = new wxGridCellAttr;
+        auto col_editor = new trimGridCellTextEditor(attr.length);
+
+        if(attr.char_includes != nullptr)
+            col_editor->SetValidString(attr.char_includes);
+        if(attr.label != nullptr && attr.description != nullptr)
+            col_editor->SetTipString(attr.label, attr.description);
+
+        col_attr->SetEditor(col_editor);
+        grid->SetColAttr(col, col_attr);    
+    }
+
+    grid->AppendRows();
+
+    if(attrs.size() > grid->GetNumberCols())
+    {
+        wxLogMessage("fb_attr.size() > grid->GetNumberCols()");
+        return;
+    }
+
+    for(auto &attr : attrs)
+    {
+        auto col = attr.num;
+        auto row = grid->GetNumberRows() - 1;
+        auto value = wxString(attr.length, attr.pad_info[1]);
+
+        if(attr.initial_value != nullptr) value = attr.initial_value;
+
+        grid->SetCellValue(row, col, value);
+    }
+
+    auto row = grid->GetNumberRows() - 1;
+    auto col = grid->GetGridCursorCol();
+
+    grid->ClearSelection();
+    grid->GoToCell(row, col);
+    grid->SetFocus();        
+
+    grid->AutoSize();   
+}
+
+void InitialFrame::reset_grid(const FBAttrsArray &attrs_array)
+{
+    reset_grid(grid_header , attrs_array.at((int)FBPart::HEADER) );
+    reset_grid(grid_data   , attrs_array.at((int)FBPart::DATA)   );
+    reset_grid(grid_trailer, attrs_array.at((int)FBPart::TRAILER));
+    reset_grid(grid_end    , attrs_array.at((int)FBPart::END)    );
+}
+
+bool InitialFrame::is_edited(wxGrid *grid, const FBAttrs &attrs)
+{
+    if(grid->GetNumberRows() != 1) return false;
+
+    for(auto &attr : attrs)
+    {
+        auto col = attr.num;
+        auto row = grid->GetNumberRows() - 1;
+        auto value = grid->GetCellValue(row, col);
+
+        auto initial_value = wxString(attr.length, attr.pad_info[1]);
+        if(attr.initial_value != nullptr) initial_value = attr.initial_value;
+
+        if(value != initial_value) return true;
+    }
+
+    return false;   
+}
+
+bool InitialFrame::is_edited(const FBAttrsArray &attrs_array)
+{
+    if(is_edited(grid_header , attrs_array.at((int)FBPart::HEADER) )) return true;
+    if(is_edited(grid_data   , attrs_array.at((int)FBPart::DATA)   )) return true;
+    if(is_edited(grid_trailer, attrs_array.at((int)FBPart::TRAILER))) return true;
+    if(is_edited(grid_end    , attrs_array.at((int)FBPart::END)    )) return true;
+
+    return false; 
+}
+
+void InitialFrame::save_editing_value()
+{
+    grid_header->SaveEditControlValue();
+    grid_data->SaveEditControlValue();
+    grid_trailer->SaveEditControlValue();
+    grid_end->SaveEditControlValue();   
 }
 
 wxMenuBar *InitialFrame::get_menu_bar()
 {
     return menu_bar;
+}
+
+wxMenu *InitialFrame::get_menu_file()
+{
+    return menu_file;
 }
 
 wxMenu *InitialFrame::get_menu_edit()
@@ -165,13 +344,6 @@ wxMenu *InitialFrame::get_menu_search()
 {
     return menu_search;
 }
-
-/*
-wxMenu *InitialFrame::get_menu_format()
-{
-    return menu_format;
-}
-*/
 
 wxPanel *InitialFrame::get_panel_top()
 {

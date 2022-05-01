@@ -7,7 +7,8 @@
 #include <wx/grid.h>
 #include <wx/srchctrl.h>
 
-#include "../custom/trimGridCellTextEditor.h"
+#include "view/custom/trimGridCellTextEditor.h"
+#include "common/FBAttrs.h"
 
 enum ID_MENU
 {
@@ -39,6 +40,16 @@ public:
         panel_top->GetSizer()->Layout();
         Refresh();
     };
+
+    wxGridCellCoords search_next_value(wxGrid *grid, const wxString &value, bool forward);
+    
+    void reset_grid(wxGrid *grid, const FBAttrs &attrs);
+    void reset_grid(const FBAttrsArray &attrs_array);
+    
+    bool is_edited(wxGrid *grid, const FBAttrs &attrs);
+    bool is_edited(const FBAttrsArray &attrs_array);
+    
+    void save_editing_value();
 
     wxMenuBar *get_menu_bar();
     wxMenu *get_menu_file();

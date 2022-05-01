@@ -2,8 +2,8 @@
 #define INITIALCONTROLLER_H
 
 #include "../Controller.h"
-#include "../../view/initial/InitialFrame.h"
-#include "../../model/FBParser.h"
+#include "view/initial/InitialFrame.h"
+#include "model/FBParser.h"
 
 #include <wx/fileconf.h>
 
@@ -16,24 +16,21 @@ public:
     virtual void initialize() override; 
 
 private:
-    void reset_grid();
-    bool is_edited();
-    void save_editing_value();
-
-    enum zengin_format
-    {
-        SOHFURI = 0,
-        KYUYO_SHOYO = 1,
-        FURIKAE = 2,
-    };
-    
-    void switch_format(zengin_format format);
+    void switch_fbtype(FBType format);
 
     void create_frame(wxFileConfig &config);
     void create_binds(wxFileConfig &config);
 
     auto get_casted_frame(){return (InitialFrame*) frame;}
-    FBParser fb;
+
+    FBParser m_fb;
+    
+    wxString m_app_name;
+    wxString m_preset_path;
+    wxString m_export_path;
+    wxString m_fbdata_path;
+
+    wxString m_chars_kana;
 };
 
 #endif //INITIALCONTROLLER_H
