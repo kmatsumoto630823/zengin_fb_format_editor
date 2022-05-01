@@ -36,9 +36,9 @@
 
 # Dependencies
 下記の環境でビルド
-- WxWidgets-3.1.5
+- WxWidgets-3.1.6
 - Windows 11
-- gcc/MinGW 11.2.0/9.0.0
+- gcc/MinGW 11.3.0/9.0.0
 
 # Author
 kmatsumoto630823
