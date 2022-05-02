@@ -4,6 +4,14 @@
 
 #define F() (InitialController::get_casted_frame())
 
+void InitialController::reset_grid_all()
+{
+    F()->reset_grid(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) );
+    F()->reset_grid(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   );
+    F()->reset_grid(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
+    F()->reset_grid(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    );
+}
+
 void InitialController::switch_fbtype(FBType type)
 {
     switch(type)
@@ -25,8 +33,20 @@ void InitialController::switch_fbtype(FBType type)
     }
 
     m_fb.set_fbtype(type, m_chars_kana.ToStdString(wxCSConv("cp932")));
-    F()->reset_grid(m_fb.get_attrs_array());
+    reset_grid_all();
 }
+
+bool InitialController::is_edited_any()
+{
+    if(F()->is_edited(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) )) return true;
+    if(F()->is_edited(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   )) return true;
+    if(F()->is_edited(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))) return true;
+    if(F()->is_edited(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    )) return true;
+
+    return false; 
+}
+
+
 
 void InitialController::initialize()
 {
@@ -58,6 +78,7 @@ void InitialController::create_frame(wxFileConfig &config)
     m_app_name = config.Read("APP_NAME", wxEmptyString);
     this->frame->SetTitle(m_app_name);
 
+    F()->get_button_header_import()->Hide();
     F()->get_button_header_export()->Hide();
 
     auto type = (FBType)config.Read("FBTYPE", (long)FBType::SOHFURI);
@@ -70,35 +91,35 @@ void InitialController::create_frame(wxFileConfig &config)
 
 void InitialController::create_binds(wxFileConfig &config)
 {
-    auto LambdaFBPaser2Grid = [](wxGrid *grid, FBParser &fb, FBPart part = FBPart::CURRENT)
+    auto LambdaFBPaser2Grid = [](wxGrid *grid, FBParser &fb)
     {
         if(grid->GetNumberRows() != 0) grid->DeleteRows(0, grid->GetNumberRows());
-        auto rows_size = fb.get_rows_num(part);
+        auto rows_size = fb.get_rows_num();
         grid->AppendRows(rows_size);
 
         for(int row = 0; row < rows_size; row++)
         {
-            for(auto &attr : fb.get_attrs(part))
+            for(auto &attr : fb.get_attrs())
             {
                 auto col = attr.num;
-                auto value = wxString(fb.get_value(row, col, part).data(), wxCSConv("cp932"), attr.length);
+                auto value = wxString(fb.get_value(row, col).data(), wxCSConv("cp932"), attr.length);
                 grid->SetCellValue(row, col, value);
             }
         }
     };
 
-    auto LambdaGrid2FBPaser = [](wxGrid *grid, FBParser &fb, FBPart part = FBPart::CURRENT)
+    auto LambdaGrid2FBPaser = [](wxGrid *grid, FBParser &fb)
     {
         auto rows_size = grid->GetNumberRows();
-        fb.assign_rows(rows_size, part);
+        fb.assign_rows(rows_size);
 
         for(int row = 0; row < rows_size; row++)
         {
-            for(auto &attr : fb.get_attrs(part))
+            for(auto &attr : fb.get_attrs())
             {
                 auto col = attr.num;
                 auto value = grid->GetCellValue(row, col).ToStdString(wxCSConv("cp932"));
-                fb.set_value(row, col, value, part);
+                fb.set_value(row, col, value);
             }
         }
     };
@@ -106,7 +127,7 @@ void InitialController::create_binds(wxFileConfig &config)
     // NEW
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        if(F()->is_edited(m_fb.get_attrs_array()))
+        if(is_edited_any())
         {
             wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
@@ -134,7 +155,7 @@ void InitialController::create_binds(wxFileConfig &config)
     {
         auto path = default_path;
 
-        if(F()->is_edited(m_fb.get_attrs_array()))
+        if(is_edited_any())
         {
             wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
@@ -267,7 +288,7 @@ void InitialController::create_binds(wxFileConfig &config)
      // EXIT
     auto LambdaOnExit = [=]()
     {
-        if(F()->is_edited(m_fb.get_attrs_array()))
+        if(is_edited_any())
         {
             wxMessageDialog mdialog(frame, "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
@@ -367,83 +388,44 @@ void InitialController::create_binds(wxFileConfig &config)
     });
 
 
-    // ADD DATA
-    auto LambdaOnDataAdd = [](wxGrid *grid, const FBAttrs &fb_attrs)
+    // DATA ADD
+    auto LambdaDataAdd = [=]()
     {
-        grid->AppendRows();
-
-        if(fb_attrs.size() > grid->GetNumberCols())
-        {
-            wxLogMessage("fb_attr.size() > grid->GetNumberCols()");
-            return;
-        }
-
-        for(auto &attr : fb_attrs)
-        {
-           auto col = attr.num;
-           auto value = wxString(attr.length, attr.pad_info[1]);
-
-            if(attr.initial_value != nullptr) value = attr.initial_value;
-
-            grid->SetCellValue(grid->GetNumberRows() - 1, col, value);
-        }
-
-        auto row = grid->GetNumberRows() - 1;
-        auto col = grid->GetGridCursorCol();
-
-        grid->ClearSelection();
-        grid->GoToCell(row, col);
-        grid->SetFocus();
+        auto grid = F()->get_grid_data();
+        auto attrs = m_fb.get_attrs(FBPart::DATA);
+        F()->insert_selected(grid, attrs);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnDataAdd(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA));
+        LambdaDataAdd();
 
     }, ID_MENU_DATA_ADD);
 
     F()->get_button_data_add()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnDataAdd(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA));
+        LambdaDataAdd();
     });
 
-    auto LambdaOnDataDelete = [](wxGrid *grid, const FBAttrs &fb_attrs)
+
+    // DATA DELETE
+    auto LambdaDataDelete = [=]()
     {
-        auto selected = grid->GetSelectedRows();
-
-        if(selected.size() == 0)
-        {
-            wxMessageDialog mdialog(grid, "レコードが選択されていません", "情報", wxOK);
-            mdialog.ShowModal();
-            return;
-        }
-
-        wxString massage;        
-        massage += "レコード";
-        for(auto &i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
-        massage += "を削除します";
-
-        wxMessageDialog mdialog(grid, massage, "確認", wxOK | wxCANCEL);
-        if(mdialog.ShowModal() == wxID_CANCEL) return;
-
-        selected.Sort([](auto lhs, auto rhs){return rhs - lhs;});
-        for(auto &i : selected)
-        {
-           grid->DeleteRows(i);
-        }
-
-        grid->ClearSelection();
+        auto grid = F()->get_grid_data();
+        auto attrs = m_fb.get_attrs(FBPart::DATA);
+        F()->delete_selected(grid, attrs);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnDataDelete(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA));
+        LambdaDataDelete();
 
     }, ID_MENU_DATA_DELETE);
 
     F()->get_button_data_delete()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnDataDelete(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA));
+        LambdaDataDelete();
+
     });
 
     // SEARCH BOX
@@ -627,15 +609,15 @@ void InitialController::create_binds(wxFileConfig &config)
             value = attr.initial_value;
         }
 
-        if(value.find_first_not_of(attr.char_includes) != wxNOT_FOUND)
+        if(attr.pad_info[0] == 'R')      value.append(   attr.length - value.length(), attr.pad_info[1]);
+        else if(attr.pad_info[0] == 'L') value.insert(0, attr.length - value.length(), attr.pad_info[1]);
+
+        if(value != attr.initial_value && value.find_first_not_of(attr.char_includes) != wxNOT_FOUND)
         {
             wxMessageDialog mdialog(grid, "不正な値です\r\n編集前の値に戻します", "警告", wxOK | wxICON_WARNING);
             mdialog.ShowModal();
             value = event.GetString();
         }
-
-        if(attr.pad_info[0] == 'R')      value.append(   attr.length - value.length(), attr.pad_info[1]);
-        else if(attr.pad_info[0] == 'L') value.insert(0, attr.length - value.length(), attr.pad_info[1]);
 
         grid->SetCellValue(row, col, value);
         

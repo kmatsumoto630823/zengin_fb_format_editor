@@ -20,20 +20,20 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     // MENU FILE
     menu_file = new wxMenu;
     menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU));
-    menu_file->Append(ID_MENU_OPEN, "FBデータを開く");
-    menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存");
+    menu_file->Append(ID_MENU_OPEN, "FBデータを開く")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_MENU));
+    menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存")->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_MENU));
     menu_file->AppendSeparator();
     menu_file->Append(ID_MENU_EXIT, "終了\tCtrl+Q")->SetBitmap(wxArtProvider::GetBitmap(wxART_CLOSE, wxART_MENU));
 
     // MENU EDIT
     menu_edit = new wxMenu;
-    menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_MENU));
+    menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
     menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：プリセット出力")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
     menu_edit->AppendSeparator();
     menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete")->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_MENU));
 
     // MENU SEARCH
     menu_search = new wxMenu;
@@ -71,7 +71,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     grid_header->DisableDragRowSize();
     grid_header->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_BUTTON));
+    button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_BUTTON));
     button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力");
 
     //GRID_DATA
@@ -99,7 +99,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     grid_trailer->DisableDragRowSize();
     grid_trailer->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
-    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_BUTTON));
+    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_BUTTON));
 
     //GRID_END
     grid_end = new wxGrid(panel_top, wxID_ANY);
@@ -162,13 +162,13 @@ wxGridCellCoords InitialFrame::search_next_value(wxGrid *grid, const wxString &s
         return {-1, -1};
     }
 
-    const auto width = grid->GetNumberCols();
-    const auto height = grid->GetNumberRows();
+    auto width = grid->GetNumberCols();
+    auto height = grid->GetNumberRows();
 
-    const auto first_row = grid->GetGridCursorRow();
-    const auto first_col = grid->GetGridCursorCol();
+    auto first_row = grid->GetGridCursorRow();
+    auto first_col = grid->GetGridCursorCol();
     
-    const auto first_value = grid->GetCellValue(first_row, first_col);
+    auto first_value = grid->GetCellValue(first_row, first_col);
 
     auto next = [d = (is_forward ? 1 : -1)](auto &pos)
     {
@@ -280,6 +280,7 @@ void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
     grid->AutoSize();   
 }
 
+/*
 void InitialFrame::reset_grid(const FBAttrsArray &attrs_array)
 {
     reset_grid(grid_header , attrs_array.at((int)FBPart::HEADER) );
@@ -287,6 +288,7 @@ void InitialFrame::reset_grid(const FBAttrsArray &attrs_array)
     reset_grid(grid_trailer, attrs_array.at((int)FBPart::TRAILER));
     reset_grid(grid_end    , attrs_array.at((int)FBPart::END)    );
 }
+*/
 
 bool InitialFrame::is_edited(wxGrid *grid, const FBAttrs &attrs)
 {
@@ -307,6 +309,7 @@ bool InitialFrame::is_edited(wxGrid *grid, const FBAttrs &attrs)
     return false;   
 }
 
+/*
 bool InitialFrame::is_edited(const FBAttrsArray &attrs_array)
 {
     if(is_edited(grid_header , attrs_array.at((int)FBPart::HEADER) )) return true;
@@ -316,6 +319,7 @@ bool InitialFrame::is_edited(const FBAttrsArray &attrs_array)
 
     return false; 
 }
+*/
 
 void InitialFrame::save_editing_value()
 {
@@ -323,6 +327,93 @@ void InitialFrame::save_editing_value()
     grid_data->SaveEditControlValue();
     grid_trailer->SaveEditControlValue();
     grid_end->SaveEditControlValue();   
+}
+
+void InitialFrame::insert_selected(wxGrid *grid, const FBAttrs &attrs)
+{
+    if(attrs.size() > grid->GetNumberCols())
+    {
+        wxLogMessage("attr.size() > grid->GetNumberCols()");
+        return;
+    }
+
+    auto selected = grid->GetSelectedRows();
+    if(selected.empty())
+    {
+        auto bottom = grid->GetNumberRows();
+        selected.Add(bottom);
+    }
+
+    grid->ClearSelection();
+    selected.Sort([](auto lhs, auto rhs){return rhs - lhs;});
+
+    for(int i = 0; i < selected.size(); ++i)
+    {
+        auto last = selected[i];
+        while(i < selected.size() - 1)
+        {
+            auto diff = selected[i] - selected[i+1];
+            if(diff == 1) i++;
+            else break;
+        }
+        auto first = selected[i];
+
+        auto insert_pos = first;
+        auto insert_num = last - first + 1;
+            
+        for(int j = 0; j < insert_num; ++j)
+        {
+            grid->InsertRows(insert_pos);
+
+            for(auto &attr : attrs)
+            {
+                auto row = insert_pos;
+                auto col = attr.num;
+                auto value = wxString(attr.length, attr.pad_info[1]);
+
+                if(attr.initial_value != nullptr) value = attr.initial_value;
+
+                grid->SetCellValue(row, col, value);                    
+            }
+
+            grid->SelectRow(insert_pos, true);
+        }
+    }
+
+    auto row = selected[0];
+    auto col = grid->GetGridCursorCol();
+
+    grid->GoToCell(row, col);
+    grid->SetFocus();
+
+}
+
+void InitialFrame::delete_selected(wxGrid *grid, const FBAttrs &attrs)
+{
+    auto selected = grid->GetSelectedRows();
+
+    if(selected.empty())
+    {
+        wxMessageDialog mdialog(grid, "レコードが選択されていません", "情報", wxOK);
+        mdialog.ShowModal();
+        return;
+    }
+
+    wxString massage;        
+    massage += "レコード";
+    for(auto &i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
+    massage += "を削除します";
+
+    wxMessageDialog mdialog(grid, massage, "確認", wxOK | wxCANCEL);
+    if(mdialog.ShowModal() == wxID_CANCEL) return;
+
+    selected.Sort([](auto lhs, auto rhs){return rhs - lhs;});
+    for(auto &insert_pos : selected)
+    {
+       grid->DeleteRows(insert_pos);
+    }
+
+    grid->ClearSelection();
 }
 
 wxMenuBar *InitialFrame::get_menu_bar()

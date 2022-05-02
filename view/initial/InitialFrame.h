@@ -41,16 +41,15 @@ public:
         Refresh();
     };
 
-    wxGridCellCoords search_next_value(wxGrid *grid, const wxString &value, bool forward);
-    
-    void reset_grid(wxGrid *grid, const FBAttrs &attrs);
-    void reset_grid(const FBAttrsArray &attrs_array);
-    
-    bool is_edited(wxGrid *grid, const FBAttrs &attrs);
-    bool is_edited(const FBAttrsArray &attrs_array);
+    static wxGridCellCoords search_next_value(wxGrid *grid, const wxString &value, bool forward);
+    static void reset_grid(wxGrid *grid, const FBAttrs &attrs);
+    static bool is_edited(wxGrid *grid, const FBAttrs &attrs);
+    static void insert_selected(wxGrid *grid, const FBAttrs &attrs);
+    static void delete_selected(wxGrid *grid, const FBAttrs &attrs);
     
     void save_editing_value();
 
+    //Widget Getter
     wxMenuBar *get_menu_bar();
     wxMenu *get_menu_file();
     wxMenu *get_menu_edit();

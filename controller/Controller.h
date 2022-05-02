@@ -18,5 +18,4 @@ protected:
 
 };
 
-
 #endif //CONTROLLER_H

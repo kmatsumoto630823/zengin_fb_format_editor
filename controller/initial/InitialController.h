@@ -16,7 +16,9 @@ public:
     virtual void initialize() override; 
 
 private:
+    void reset_grid_all();
     void switch_fbtype(FBType format);
+    bool is_edited_any();
 
     void create_frame(wxFileConfig &config);
     void create_binds(wxFileConfig &config);
