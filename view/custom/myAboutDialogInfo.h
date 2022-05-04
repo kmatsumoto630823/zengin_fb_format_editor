@@ -9,7 +9,7 @@ public:
     myAboutDialogInfo();
     ~myAboutDialogInfo() = default;
 
-    void myAboutBox(wxWindow *parent);
+    void myAboutBox(wxWindow* parent);
 
 private:
     wxAboutDialogInfo aboutinfo;

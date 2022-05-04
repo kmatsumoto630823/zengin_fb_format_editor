@@ -39,7 +39,7 @@ enum FBNewLine : int
     ITEM_NUM
 };
 
-constexpr std::array<const char *, (int)FBNewLine::ITEM_NUM > FB_NEWLINE_CODE = 
+constexpr std::array<const char*, (int)FBNewLine::ITEM_NUM > FB_NEWLINE_CODE = 
 {
     "\r\n",
     "\r",

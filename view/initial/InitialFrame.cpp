@@ -1,17 +1,9 @@
 #include "InitialFrame.h"
 
-#include <wx/wx.h>
-#include <wx/frame.h>
-#include <wx/button.h>
-#include <wx/grid.h>
-#include <wx/srchctrl.h>
-
 #include <wx/menu.h>
 #include <wx/stattext.h>
 #include <wx/sizer.h>
-
 #include <wx/artprov.h>
-
 #include <wx/log.h>
 
 InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
@@ -146,7 +138,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     CreateStatusBar();
 }
 
-wxGridCellCoords InitialFrame::search_next_value(wxGrid *grid, const wxString &search_value, bool is_forward)
+wxGridCellCoords InitialFrame::search_next_value(wxGrid* grid, const wxString& search_value, bool is_forward)
 {
     if(search_value.empty()) return {-1, -1};
 
@@ -170,7 +162,7 @@ wxGridCellCoords InitialFrame::search_next_value(wxGrid *grid, const wxString &s
     
     auto first_value = grid->GetCellValue(first_row, first_col);
 
-    auto next = [d = (is_forward ? 1 : -1)](auto &pos)
+    auto next = [d = (is_forward ? 1 : -1)](auto& pos)
     {
         pos += d;
     };
@@ -220,7 +212,7 @@ wxGridCellCoords InitialFrame::search_next_value(wxGrid *grid, const wxString &s
     return {first_row, first_col};
 }
 
-void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
+void InitialFrame::reset_grid(wxGrid* grid, const FBAttrs& attrs)
 {
     if(auto h = grid->GetNumberRows(); h > 0) grid->DeleteRows(0, h);
     if(auto w = grid->GetNumberCols(); w > 0) grid->DeleteCols(0, w);
@@ -233,7 +225,7 @@ void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
 
     grid->AppendCols(attrs.size());
 
-    for(auto &attr : attrs)
+    for(auto& attr : attrs)
     {
         auto col = attr.num;
 
@@ -259,7 +251,7 @@ void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
         return;
     }
 
-    for(auto &attr : attrs)
+    for(auto& attr : attrs)
     {
         auto col = attr.num;
         auto row = grid->GetNumberRows() - 1;
@@ -280,21 +272,11 @@ void InitialFrame::reset_grid(wxGrid *grid, const FBAttrs &attrs)
     grid->AutoSize();   
 }
 
-/*
-void InitialFrame::reset_grid(const FBAttrsArray &attrs_array)
-{
-    reset_grid(grid_header , attrs_array.at((int)FBPart::HEADER) );
-    reset_grid(grid_data   , attrs_array.at((int)FBPart::DATA)   );
-    reset_grid(grid_trailer, attrs_array.at((int)FBPart::TRAILER));
-    reset_grid(grid_end    , attrs_array.at((int)FBPart::END)    );
-}
-*/
-
-bool InitialFrame::is_edited(wxGrid *grid, const FBAttrs &attrs)
+bool InitialFrame::is_edited(wxGrid* grid, const FBAttrs& attrs)
 {
     if(grid->GetNumberRows() != 1) return false;
 
-    for(auto &attr : attrs)
+    for(auto& attr : attrs)
     {
         auto col = attr.num;
         auto row = grid->GetNumberRows() - 1;
@@ -309,18 +291,6 @@ bool InitialFrame::is_edited(wxGrid *grid, const FBAttrs &attrs)
     return false;   
 }
 
-/*
-bool InitialFrame::is_edited(const FBAttrsArray &attrs_array)
-{
-    if(is_edited(grid_header , attrs_array.at((int)FBPart::HEADER) )) return true;
-    if(is_edited(grid_data   , attrs_array.at((int)FBPart::DATA)   )) return true;
-    if(is_edited(grid_trailer, attrs_array.at((int)FBPart::TRAILER))) return true;
-    if(is_edited(grid_end    , attrs_array.at((int)FBPart::END)    )) return true;
-
-    return false; 
-}
-*/
-
 void InitialFrame::save_editing_value()
 {
     grid_header->SaveEditControlValue();
@@ -329,7 +299,7 @@ void InitialFrame::save_editing_value()
     grid_end->SaveEditControlValue();   
 }
 
-void InitialFrame::insert_selected(wxGrid *grid, const FBAttrs &attrs)
+void InitialFrame::insert_selected(wxGrid* grid, const FBAttrs& attrs)
 {
     if(attrs.size() > grid->GetNumberCols())
     {
@@ -365,7 +335,7 @@ void InitialFrame::insert_selected(wxGrid *grid, const FBAttrs &attrs)
         {
             grid->InsertRows(insert_pos);
 
-            for(auto &attr : attrs)
+            for(auto& attr : attrs)
             {
                 auto row = insert_pos;
                 auto col = attr.num;
@@ -388,7 +358,7 @@ void InitialFrame::insert_selected(wxGrid *grid, const FBAttrs &attrs)
 
 }
 
-void InitialFrame::delete_selected(wxGrid *grid, const FBAttrs &attrs)
+void InitialFrame::delete_selected(wxGrid* grid, const FBAttrs& attrs)
 {
     auto selected = grid->GetSelectedRows();
 
@@ -401,14 +371,14 @@ void InitialFrame::delete_selected(wxGrid *grid, const FBAttrs &attrs)
 
     wxString massage;        
     massage += "レコード";
-    for(auto &i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
+    for(auto& i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
     massage += "を削除します";
 
     wxMessageDialog mdialog(grid, massage, "確認", wxOK | wxCANCEL);
     if(mdialog.ShowModal() == wxID_CANCEL) return;
 
     selected.Sort([](auto lhs, auto rhs){return rhs - lhs;});
-    for(auto &insert_pos : selected)
+    for(auto& insert_pos : selected)
     {
        grid->DeleteRows(insert_pos);
     }
@@ -416,87 +386,87 @@ void InitialFrame::delete_selected(wxGrid *grid, const FBAttrs &attrs)
     grid->ClearSelection();
 }
 
-wxMenuBar *InitialFrame::get_menu_bar()
+wxMenuBar* InitialFrame::get_menu_bar()
 {
     return menu_bar;
 }
 
-wxMenu *InitialFrame::get_menu_file()
+wxMenu* InitialFrame::get_menu_file()
 {
     return menu_file;
 }
 
-wxMenu *InitialFrame::get_menu_edit()
+wxMenu* InitialFrame::get_menu_edit()
 {
     return menu_edit;
 }
 
-wxMenu *InitialFrame::get_menu_search()
+wxMenu* InitialFrame::get_menu_search()
 {
     return menu_search;
 }
 
-wxPanel *InitialFrame::get_panel_top()
+wxPanel* InitialFrame::get_panel_top()
 {
     return panel_top;
 }
 
-wxGrid *InitialFrame::get_grid_header()
+wxGrid* InitialFrame::get_grid_header()
 {
     return grid_header;
 }
 
-wxButton *InitialFrame::get_button_header_import()
+wxButton* InitialFrame::get_button_header_import()
 {
     return button_header_import;   
 }
 
-wxButton *InitialFrame::get_button_header_export()
+wxButton* InitialFrame::get_button_header_export()
 {
     return button_header_export;
 }
 
-wxGrid *InitialFrame::get_grid_data()
+wxGrid* InitialFrame::get_grid_data()
 {
     return grid_data;
 }
 
-wxButton *InitialFrame::get_button_data_add()
+wxButton* InitialFrame::get_button_data_add()
 {
     return button_data_add;
 }
 
-wxButton *InitialFrame::get_button_data_delete()
+wxButton* InitialFrame::get_button_data_delete()
 {
     return button_data_delete;
 }
 
-wxSearchCtrl *InitialFrame::get_searchctrl_data_search()
+wxSearchCtrl* InitialFrame::get_searchctrl_data_search()
 {
     return searchctrl_data_search;
 }
 
-wxButton *InitialFrame::get_button_data_search_forward()
+wxButton* InitialFrame::get_button_data_search_forward()
 {
     return button_data_search_forward;
 }
 
-wxButton *InitialFrame::get_button_data_search_backward()
+wxButton* InitialFrame::get_button_data_search_backward()
 {
     return button_data_search_backward;
 }
 
-wxGrid *InitialFrame::get_grid_trailer()
+wxGrid* InitialFrame::get_grid_trailer()
 {
     return grid_trailer;
 }
 
-wxButton *InitialFrame::get_button_trailer_recalculated()
+wxButton* InitialFrame::get_button_trailer_recalculated()
 {
     return button_trailer_recalculate;
 }
 
-wxGrid *InitialFrame::get_grid_end()
+wxGrid* InitialFrame::get_grid_end()
 {
     return grid_end;
 }

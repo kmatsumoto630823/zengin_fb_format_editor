@@ -11,7 +11,7 @@ public:
     
     virtual void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) override;
     virtual void BeginEdit(int row, int col, wxGrid* grid) override;
-    virtual void StartingKey(wxKeyEvent &event) override;
+    virtual void StartingKey(wxKeyEvent& event) override;
     
     void SetTipString(const wxString& label, const wxString& description);
     void SetValidString(const wxString& char_includes);

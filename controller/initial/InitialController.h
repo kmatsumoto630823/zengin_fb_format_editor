@@ -16,12 +16,15 @@ public:
     virtual void initialize() override; 
 
 private:
+    template<typename T, typename U>
+    static void grid2grid(T* src, U* dst);
+
     void reset_grid_all();
     void switch_fbtype(FBType format);
     bool is_edited_any();
-
-    void create_frame(wxFileConfig &config);
-    void create_binds(wxFileConfig &config);
+    
+    void create_frame(wxFileConfig& config);
+    void create_binds(wxFileConfig& config);
 
     auto get_casted_frame(){return (InitialFrame*) frame;}
 

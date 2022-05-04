@@ -6,7 +6,7 @@ wxIMPLEMENT_APP(App);
 
 bool App::OnInit()
 {
-    Controller *ctrl = (Controller*) new InitialController();
+    Controller* ctrl = (Controller*) new InitialController();
     ctrl->initialize();
     ctrl->toggle_view();
 

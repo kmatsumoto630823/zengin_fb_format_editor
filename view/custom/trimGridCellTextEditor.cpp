@@ -55,7 +55,7 @@ void trimGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
 
 }
 
-void trimGridCellTextEditor::StartingKey(wxKeyEvent &event)
+void trimGridCellTextEditor::StartingKey(wxKeyEvent& event)
 {
     int ch;
     bool isPrintable;

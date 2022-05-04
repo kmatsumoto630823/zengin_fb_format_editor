@@ -16,7 +16,7 @@ FBParser::~FBParser()
 
 }
 
-bool FBParser::open_file(const std::string &path)
+bool FBParser::open_file(const std::string& path)
 {
     std::ifstream fb_ifs(path, std::ios::binary);
 
@@ -36,7 +36,7 @@ bool FBParser::open_file(const std::string &path)
 
     fb_ifs.seekg(0, std::ios_base::beg);
 
-    for(auto &grid : m_grid_array)grid.clear();
+    for(auto& grid : m_grid_array)grid.clear();
 
     std::string fb_str;
     fb_str.reserve(file_size);
@@ -75,8 +75,8 @@ bool FBParser::open_file(const std::string &path)
 
         record_kb = line_view.at(0) - '0';
 
-        FBAttrs *attrs_ref;
-        FBGrid *grid_ref;
+        FBAttrs* attrs_ref;
+        FBGrid* grid_ref;
 
         switch(record_kb)
         {
@@ -105,7 +105,7 @@ bool FBParser::open_file(const std::string &path)
                 return false;
         }
 
-        for(auto &attr : *attrs_ref)
+        for(auto& attr : *attrs_ref)
         {
             auto value = line_view.substr(attr.offset, attr.length);
 
@@ -125,7 +125,7 @@ bool FBParser::open_file(const std::string &path)
     return true;
 }
 
-bool FBParser::save_file(const std::string &path)
+bool FBParser::save_file(const std::string& path)
 {
     std::ofstream fb_ofs(path, std::ios::binary);
     if(!fb_ofs)
@@ -134,9 +134,9 @@ bool FBParser::save_file(const std::string &path)
         return false;
     }
 
-    for(auto &grid : m_grid_array)
+    for(auto& grid : m_grid_array)
     {
-        for(auto & line : grid)
+        for(auto& line : grid)
         fb_ofs << std::string_view(line.data()) << FB_NEWLINE_CODE[m_newline];
     }
 
@@ -171,9 +171,9 @@ FBParser& FBParser::set_fbtype(FBType type, std::string_view chars_kana)
     m_chars_kana = chars_kana;
     if(m_chars_kana.empty()) return *this;
     
-    for(auto &attrs : m_attrs_array)
+    for(auto& attrs : m_attrs_array)
     {
-        for(auto &attr : attrs)
+        for(auto& attr : attrs)
         if(attr.char_includes == CHARS_KANA) attr.char_includes = m_chars_kana.data();
     }
 
@@ -211,8 +211,19 @@ FBNewLine FBParser::get_newline()
     return m_newline;
 }
 
+const FBAttrs& FBParser::get_attrs(FBPart part)
+{
+    if(part == FBPart::CURRENT) part = m_fbpart;
+    return m_attrs_array.at((int)part);
+}
 
-std::size_t FBParser::get_rows_num(FBPart part)
+const FBAttrsArray& FBParser::get_attrs_array()
+{
+    return m_attrs_array;
+}
+
+
+std::size_t FBParser::get_number_rows(FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
     auto& grid = m_grid_array.at((int)part);
@@ -220,70 +231,12 @@ std::size_t FBParser::get_rows_num(FBPart part)
     return grid.size();
 }
 
-bool FBParser::assign_rows(std::size_t num, FBPart part)
+std::size_t FBParser::get_number_cols(FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
+    auto& attrs = m_attrs_array.at((int)part);
 
-    auto& grid = m_grid_array.at((int)part);
-
-    FBLine space_line;
-    space_line.fill(' ');
-    space_line.back() = '\0';
-
-    grid.assign(num, space_line);
-
-    return true;
-}
-
-bool FBParser::append_row(std::size_t num, FBPart part)
-{
-    if(part == FBPart::CURRENT) part = m_fbpart;
-
-    auto& grid = m_grid_array.at((int)part);
-
-    FBLine space_line;
-    space_line.fill(' ');
-    space_line.back() = '\0';
-
-    for(int i = 0; i < num; ++i)
-    grid.push_back(space_line);
-
-    return true;
-}
-
-bool FBParser::insert_row(std::size_t row, std::size_t num, FBPart part)
-{
-    if(part == FBPart::CURRENT) part = m_fbpart;
-
-    auto& grid = m_grid_array.at((int)part);
-
-    auto first = grid.begin() + row;
-    if(first > grid.end()) return false;
-
-    FBLine space_line;
-    space_line.fill(' ');
-    space_line.back() = '\0';
-
-    grid.insert(first, num, space_line);
-
-    return true;
-}
-
-bool FBParser::delete_row(std::size_t row, std::size_t num, FBPart part)
-{
-    if(part == FBPart::CURRENT) part = m_fbpart;
-
-    auto& grid = m_grid_array.at((int)part);
-    
-    auto first = grid.begin() + row;
-    auto last = first + num;
-
-    if(last >= grid.end()) return false;
-
-    grid.erase(first, last);
-
-
-    return true;
+    return attrs.size();
 }
 
 const char EMPTY_STRING [] = "";
@@ -346,13 +299,76 @@ bool FBParser::set_value(std::size_t row, std::size_t col, std::string_view valu
     return true;
 }
 
-const FBAttrs& FBParser::get_attrs(FBPart part)
+bool FBParser::assign_rows(std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
-    return m_attrs_array.at((int)part);
+
+    auto& grid = m_grid_array.at((int)part);
+
+    FBLine space_line;
+    space_line.fill(' ');
+    space_line.back() = '\0';
+
+    grid.assign(num, space_line);
+
+    return true;
 }
 
-const FBAttrsArray& FBParser::get_attrs_array()
+bool FBParser::append_rows(std::size_t num, FBPart part)
 {
-    return m_attrs_array;
+    if(part == FBPart::CURRENT) part = m_fbpart;
+
+    auto& grid = m_grid_array.at((int)part);
+
+    FBLine space_line;
+    space_line.fill(' ');
+    space_line.back() = '\0';
+
+    for(int i = 0; i < num; ++i)
+    grid.push_back(space_line);
+
+    return true;
+}
+
+bool FBParser::insert_rows(std::size_t row, std::size_t num, FBPart part)
+{
+    if(part == FBPart::CURRENT) part = m_fbpart;
+
+    auto& grid = m_grid_array.at((int)part);
+
+    auto first = grid.begin() + row;
+
+    if(first > grid.end()){
+        wxLogMessage("first > grid.end()");
+        return false;
+    }
+
+    FBLine space_line;
+    space_line.fill(' ');
+    space_line.back() = '\0';
+
+    grid.insert(first, num, space_line);
+
+    return true;
+}
+
+bool FBParser::delete_rows(std::size_t row, std::size_t num, FBPart part)
+{
+    if(part == FBPart::CURRENT) part = m_fbpart;
+
+    auto& grid = m_grid_array.at((int)part);
+    
+    auto first = grid.begin() + row;
+    auto last = first + num;
+
+    if(last > grid.end()){
+        wxLogMessage("last > grid.end()");
+        return false;
+    }
+
+
+    grid.erase(first, last);
+
+
+    return true;
 }
