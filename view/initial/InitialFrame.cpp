@@ -64,7 +64,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     grid_header->CreateGrid(0, 0, wxGrid::wxGridSelectRowsOrColumns);
 
     button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_BUTTON));
-    button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力");
+    button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力"); button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_BUTTON));
 
     //GRID_DATA
     grid_data = new wxGrid(panel_top, wxID_ANY);
@@ -110,7 +110,8 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
             sizer_header_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠ヘッダレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_header_label->Add(button_header_import, 0, wxALIGN_BOTTOM);
             sizer_header_label->Add(button_header_export, 0, wxALIGN_BOTTOM);
-        sizer_top->Add(grid_header, 0, wxALIGN_LEFT | wxBOTTOM, 10);
+        sizer_top->Add(grid_header, 0, wxALIGN_LEFT | wxLEFT, 1);
+        sizer_top->AddSpacer(10);
 
         auto sizer_data_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_data_label, 0, wxALIGN_LEFT);
@@ -120,18 +121,21 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
             sizer_data_label->Add(searchctrl_data_search, 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_search_forward, 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_search_backward, 0, wxALIGN_BOTTOM);
-        sizer_top->Add(grid_data, 1, wxALIGN_LEFT | wxEXPAND | wxBOTTOM, 10);
+        sizer_top->Add(grid_data, 1, wxALIGN_LEFT | wxEXPAND | wxLEFT, 1);
+        sizer_top->AddSpacer(10);
 
         auto sizer_trailer_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_trailer_label, 0, wxALIGN_LEFT);
             sizer_trailer_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠トレーラレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_trailer_label->Add(button_trailer_recalculate, 0, wxALIGN_BOTTOM);
-        sizer_top->Add(grid_trailer, 0, wxALIGN_LEFT | wxBOTTOM, 10);
+        sizer_top->Add(grid_trailer, 0, wxALIGN_LEFT | wxLEFT, 1);
+        sizer_top->AddSpacer(10);
 
         auto sizer_end_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_end_label, 0, wxALIGN_LEFT);
             sizer_end_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠エンドレコード：　"), 0, wxALIGN_BOTTOM);
-        sizer_top->Add(grid_end, 0, wxALIGN_LEFT | wxBOTTOM, 10);
+        sizer_top->Add(grid_end, 0, wxALIGN_LEFT | wxLEFT, 1);
+        sizer_top->AddSpacer(10);
 
 
     // STATUS

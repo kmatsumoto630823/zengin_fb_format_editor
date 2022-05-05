@@ -16,11 +16,8 @@ public:
     virtual void initialize() override; 
 
 private:
-    template<typename T, typename U>
-    static void grid2grid(T* src, U* dst);
-
     void reset_grid_all();
-    void switch_fbtype(FBType format);
+    void switch_fbtype(FBType type);
     bool is_edited_any();
     
     void create_frame(wxFileConfig& config);

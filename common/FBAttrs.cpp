@@ -7,7 +7,7 @@ const char CHARS_KANA[]  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ±²³´µ¶·¸¹º»
 const char PAD_KANA[]    = "R ";
 
 const char CHARS_DUMMY[] = " ";
-extern const char PAD_DUMMY[]   = "R ";
+const char PAD_DUMMY[]   = "R ";
 
 //SOHFURI
 const FBAttrsArray ATTRS_ARRAY_SOHFURI =
