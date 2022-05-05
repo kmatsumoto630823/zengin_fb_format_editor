@@ -1,20 +1,23 @@
 # TODO
-~~ソースコード整理~~
 
-~~Controllerクラスのダイエット~~
+ClipboardやCSVを使ったデータレコードの挿入
 
-Clipboardをうまく使ってなにかできないか
+全角文字による検索を許す（内部的に半角文字に変換して検索）
 
 入力支援機能
 
-Undo Redo機能
+Makefileの作成
+
+Undo Redo機能（難しい・・・）
 
 ~~埋め込んだ定数の外部ファイル化~~
-
-Makefileの作成
 
 ~~wxWidgets3.1.6がリリースされたので対応させる~~
 
 ~~wxGridとFBParserのデータを抽象化して統一的に扱えないか~~
+
+~~ソースコード整理~~
+
+~~Controllerクラスのダイエット~~
 
 
