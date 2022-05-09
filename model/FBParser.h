@@ -8,8 +8,8 @@
 #include<array>
 
 using FBLine = std::array<char, FB_WIDTH + 1>;
-using FBGrid = std::vector<FBLine>;
-using FBGridArray = std::array<FBGrid, (int)FBPart::ITEM_NUM>;
+using FBBlock = std::vector<FBLine>;
+using FBBlockArray = std::array<FBBlock, (int)FBPart::ITEM_NUM>;
 
 class FBParser final
 {
@@ -32,7 +32,7 @@ public:
     const FBAttrs& get_attrs(FBPart part = FBPart::CURRENT);
     const FBAttrsArray& get_attrs_array();
 
-    // For Gid Operation
+    // For Grid Operation
     std::size_t get_number_rows(FBPart part = FBPart::CURRENT);
     std::size_t get_number_cols(FBPart part = FBPart::CURRENT); 
 
@@ -50,7 +50,7 @@ private:
     FBType m_fbtype;
     FBPart m_fbpart;
 
-    FBGridArray m_grid_array;
+    FBBlockArray m_block_array;
     FBAttrsArray m_attrs_array;
 
     std::string m_chars_kana;

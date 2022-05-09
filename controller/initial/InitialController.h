@@ -16,7 +16,6 @@ public:
     virtual void initialize() override; 
 
 private:
-    void reset_grid_all();
     void switch_fbtype(FBType type);
     bool is_edited_any();
     

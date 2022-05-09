@@ -36,7 +36,7 @@ bool FBParser::open_file(const std::string& path)
 
     fb_ifs.seekg(0, std::ios_base::beg);
 
-    for(auto& grid : m_grid_array)grid.clear();
+    for(auto& block : m_block_array)block.clear();
 
     std::string fb_str;
     fb_str.reserve(file_size);
@@ -76,28 +76,28 @@ bool FBParser::open_file(const std::string& path)
         record_kb = line_view.at(0) - '0';
 
         FBAttrs* attrs_ref;
-        FBGrid* grid_ref;
+        FBBlock* block_ref;
 
         switch(record_kb)
         {
             case FB_PART_HEADER :
                 attrs_ref = &m_attrs_array.at((int)FBPart::HEADER);
-                grid_ref = &m_grid_array.at((int)FBPart::HEADER);
+                block_ref = &m_block_array.at((int)FBPart::HEADER);
                 break;
 
             case FB_PART_DATA :
                 attrs_ref = &m_attrs_array.at((int)FBPart::DATA);
-                grid_ref = &m_grid_array.at((int)FBPart::DATA);
+                block_ref = &m_block_array.at((int)FBPart::DATA);
                 break;
             
             case FB_PART_TRAILER :
                 attrs_ref = &m_attrs_array.at((int)FBPart::TRAILER);
-                grid_ref = &m_grid_array.at((int)FBPart::TRAILER);
+                block_ref = &m_block_array.at((int)FBPart::TRAILER);
                 break;
 
             case FB_PART_END :
                 attrs_ref = &m_attrs_array.at((int)FBPart::END);
-                grid_ref = &m_grid_array.at((int)FBPart::END);
+                block_ref = &m_block_array.at((int)FBPart::END);
                 break;
 
             default:
@@ -119,7 +119,7 @@ bool FBParser::open_file(const std::string& path)
             }
         }
 
-        grid_ref->push_back(line);
+        block_ref->push_back(line);
     }
 
     return true;
@@ -134,9 +134,9 @@ bool FBParser::save_file(const std::string& path)
         return false;
     }
 
-    for(auto& grid : m_grid_array)
+    for(auto& block : m_block_array)
     {
-        for(auto& line : grid)
+        for(auto& line : block)
         fb_ofs << std::string_view(line.data()) << FB_NEWLINE_CODE[m_newline];
     }
 
@@ -226,9 +226,9 @@ const FBAttrsArray& FBParser::get_attrs_array()
 std::size_t FBParser::get_number_rows(FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
 
-    return grid.size();
+    return block.size();
 }
 
 std::size_t FBParser::get_number_cols(FBPart part)
@@ -245,18 +245,18 @@ std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart pa
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
     auto& attrs = m_attrs_array.at((int)part);
 
-    if(row >= grid.size() || col >= attrs.size())
+    if(row >= block.size() || col >= attrs.size())
     {
-        wxLogMessage("row >= grid.size() || col >= attrs.size()");
+        wxLogMessage("row >= block.size() || col >= attrs.size()");
         return EMPTY_STRING;
     }
     
     auto& attr = attrs.at(col);
 
-    std::string_view line(grid.at(row).data());
+    std::string_view line(block.at(row).data());
     auto value = line.substr(attr.offset, attr.length);
     
     return value;
@@ -267,12 +267,12 @@ bool FBParser::set_value(std::size_t row, std::size_t col, std::string_view valu
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
     auto& attrs = m_attrs_array.at((int)part);
 
-    if(row >= grid.size() || col >= attrs.size())
+    if(row >= block.size() || col >= attrs.size())
     {
-        wxLogMessage("row >= grid.size() || col >= attrs.size()");
+        wxLogMessage("row >= block.size() || col >= attrs.size()");
         return false;
     }
 
@@ -293,7 +293,7 @@ bool FBParser::set_value(std::size_t row, std::size_t col, std::string_view valu
         }
     }
 
-    auto& line = grid.at(row);
+    auto& line = block.at(row);
     std::copy(value.begin(), value.end(), line.begin() + attr.offset);
 
     return true;
@@ -303,13 +303,13 @@ bool FBParser::assign_rows(std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
 
     FBLine space_line;
     space_line.fill(' ');
     space_line.back() = '\0';
 
-    grid.assign(num, space_line);
+    block.assign(num, space_line);
 
     return true;
 }
@@ -318,14 +318,14 @@ bool FBParser::append_rows(std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
 
     FBLine space_line;
     space_line.fill(' ');
     space_line.back() = '\0';
 
     for(int i = 0; i < num; ++i)
-    grid.push_back(space_line);
+    block.push_back(space_line);
 
     return true;
 }
@@ -334,12 +334,12 @@ bool FBParser::insert_rows(std::size_t row, std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
 
-    auto first = grid.begin() + row;
+    auto first = block.begin() + row;
 
-    if(first > grid.end()){
-        wxLogMessage("first > grid.end()");
+    if(first > block.end()){
+        wxLogMessage("first > block.end()");
         return false;
     }
 
@@ -347,7 +347,7 @@ bool FBParser::insert_rows(std::size_t row, std::size_t num, FBPart part)
     space_line.fill(' ');
     space_line.back() = '\0';
 
-    grid.insert(first, num, space_line);
+    block.insert(first, num, space_line);
 
     return true;
 }
@@ -356,18 +356,18 @@ bool FBParser::delete_rows(std::size_t row, std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_fbpart;
 
-    auto& grid = m_grid_array.at((int)part);
+    auto& block = m_block_array.at((int)part);
     
-    auto first = grid.begin() + row;
+    auto first = block.begin() + row;
     auto last = first + num;
 
-    if(last > grid.end()){
-        wxLogMessage("last > grid.end()");
+    if(last > block.end()){
+        wxLogMessage("last > block.end()");
         return false;
     }
 
 
-    grid.erase(first, last);
+    block.erase(first, last);
 
 
     return true;

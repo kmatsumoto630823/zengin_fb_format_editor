@@ -5,15 +5,12 @@
 #include <wx/log.h>
 
 #define F() (InitialController::get_casted_frame())
+#define _do_callback_(collback) do {F()->Freeze(); (collback); F()->force_refresh(); F()->Thaw();} while(0)
 
 class FBGridAdapter
 {
 public:
-    FBGridAdapter(FBParser& fb)
-    {
-        set_fb(fb);
-    };
-
+    FBGridAdapter(FBParser& fb){ set_fb(fb); };
     ~FBGridAdapter(){};
 
     FBGridAdapter& set_fbpart(FBPart part)
@@ -30,15 +27,8 @@ public:
     }    
 
     //Adapter Function (like wxGridTableBase)
-    int GetNumberRows () const
-    {
-        return m_fb->get_number_rows(m_fbpart);
-    };
-
-    int GetNumberCols () const
-    {
-        return m_fb->get_number_cols(m_fbpart);
-    };
+    int GetNumberRows () const { return m_fb->get_number_rows(m_fbpart); };
+    int GetNumberCols () const { return m_fb->get_number_cols(m_fbpart); };
 
     const wxString& GetValue(int row, int col)
     {
@@ -54,20 +44,9 @@ public:
         m_fb->set_value(row, col, m_string_buff, m_fbpart);
     };
 
-    bool AppendRows(int numRows = 1)
-    {
-        return m_fb->append_rows(numRows, m_fbpart);
-    };
-
-    bool InsertRows(int pos = 0, int numRows = 1)
-    {
-        return m_fb->insert_rows(pos, numRows);
-    };
-
-    bool DeleteRows(int pos = 0, int numRows = 1)
-    {
-        return m_fb->delete_rows(pos, numRows, m_fbpart);
-    };
+    bool AppendRows(int numRows = 1){ return m_fb->append_rows(numRows, m_fbpart); };
+    bool InsertRows(int pos = 0, int numRows = 1){ return m_fb->insert_rows(pos, numRows, m_fbpart); };
+    bool DeleteRows(int pos = 0, int numRows = 1){ return m_fb->delete_rows(pos, numRows, m_fbpart); };
 
 private:
     FBParser* m_fb;
@@ -85,11 +64,10 @@ inline void grid2grid(T* src, U* dst)
         wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
     }
 
-    if(dst->GetNumberRows() != 0) dst->DeleteRows(0, dst->GetNumberRows());
-
     auto num_rows = src->GetNumberRows();
     auto num_cols = src->GetNumberCols();
 
+    if(dst->GetNumberRows() != 0) dst->DeleteRows(0, dst->GetNumberRows());
     dst->AppendRows(num_rows);
 
     for(decltype(num_rows) row = 0; row < num_rows; row++)  
@@ -111,14 +89,14 @@ inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
         return;
     }
 
-    if(dst->GetNumberRows() != 0) dst->DeleteRows(0, dst->GetNumberRows());
     auto num_rows = src->GetNumberRows();
     auto num_cols = src->GetNumberCols();
 
+    if(dst->GetNumberRows() != 0) dst->DeleteRows(0, dst->GetNumberRows());
     dst->AppendRows(num_rows);
 
     wxString msg;
-    auto show_msg = [&msg, &dlg](auto row, auto num_rows)
+    auto update_msg = [&msg, &dlg](auto row, auto num_rows)
     {
         msg.Empty();
         msg <<  row * 100 / num_rows << "% ";
@@ -130,9 +108,9 @@ inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
     for(decltype(num_rows) row = 0; row < num_rows; row++)  
     {
        
-        if(row % (num_rows / 100) == 0)
+        if(row % (num_rows / 100 + 1)  == 0)
         {
-            show_msg(row, num_rows);
+            update_msg(row, num_rows);
         }
 
         for(decltype(num_cols) col = 0; col < num_cols; col++)
@@ -142,17 +120,7 @@ inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
         }
     }
 
-    show_msg(num_rows, num_rows);
-}
-
-void InitialController::reset_grid_all()
-{
-    F()->reset_grid(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) );
-    F()->reset_grid(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   );
-    F()->reset_grid(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
-    F()->reset_grid(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    );
-
-    F()->force_refresh();
+    update_msg(num_rows, num_rows);
 }
 
 void InitialController::switch_fbtype(FBType type)
@@ -176,7 +144,13 @@ void InitialController::switch_fbtype(FBType type)
     }
 
     m_fb.set_fbtype(type, m_chars_kana.ToStdString(wxCSConv("cp932")));
-    reset_grid_all();
+
+    F()->reset_grid(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) );
+    F()->reset_grid(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   );
+    F()->reset_grid(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
+    F()->reset_grid(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    );
+
+    F()->force_refresh();
 }
 
 bool InitialController::is_edited_any()
@@ -218,15 +192,16 @@ void InitialController::initialize()
 void InitialController::create_frame(wxFileConfig& config)
 {
     this->frame = new InitialFrame();
+
     m_app_name = config.Read("APP_NAME", wxEmptyString);
     this->frame->SetTitle(m_app_name);
 
-    if(config.Read("BUTTTON_HEADER_IMPORT") == "HIDE")
+    if(config.Read("BUTTTON_HEADER_IMPORT", wxEmptyString) == "HIDE")
     {
         F()->get_button_header_import()->Hide();
     }
 
-    if(config.Read("BUTTTON_HEADER_EXPORT") == "HIDE")
+    if(config.Read("BUTTTON_HEADER_EXPORT", wxEmptyString) == "HIDE")
     {
         F()->get_button_header_export()->Hide();
     }
@@ -239,8 +214,10 @@ void InitialController::create_frame(wxFileConfig& config)
     F()->SetSize(wxSize(w, h));
 }
 
+
 void InitialController::create_binds(wxFileConfig& config)
 {
+
     // NEW
     auto LambdaOnNew = [=]()
     {
@@ -262,14 +239,14 @@ void InitialController::create_binds(wxFileConfig& config)
 
         auto type = (FBType) scdialog.GetSelection();
         switch_fbtype(type);
-
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnNew(); 
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnNew()
+        );
 
     }, ID_MENU_NEW);
 
@@ -315,21 +292,26 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnOpen("");
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnOpen("")
+        );
         
     }, ID_MENU_OPEN);
 
     F()->DragAcceptFiles(true);
     F()->Bind(wxEVT_DROP_FILES, [=](wxDropFilesEvent& event)
     {
-        if(event.GetNumberOfFiles() != 1){
+        if(event.GetNumberOfFiles() != 1)
+        {
             wxLogMessage("event.GetNumberOfFiles() != 1");
             return;
-        }
-
-        LambdaOnOpen(event.GetFiles()[0]);
+        };
+        
+        _do_callback_
+        (
+            LambdaOnOpen(event.GetFiles()[0])
+        );
     });
 
     // SAVEAS
@@ -392,8 +374,10 @@ void InitialController::create_binds(wxFileConfig& config)
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
         FBGridAdapter fbgrid(m_fb);
+        wxProgressDialog pdialog("i’»", " ", 100, F());
+
         grid2grid(F()->get_grid_header()->GetTable() , &fbgrid.set_fbpart(FBPart::HEADER) );
-        grid2grid(F()->get_grid_data()->GetTable()   , &fbgrid.set_fbpart(FBPart::DATA)   );
+        grid2grid(F()->get_grid_data()->GetTable()   , &fbgrid.set_fbpart(FBPart::DATA)   , &pdialog);
         grid2grid(F()->get_grid_trailer()->GetTable(), &fbgrid.set_fbpart(FBPart::TRAILER));
         grid2grid(F()->get_grid_end()->GetTable()    , &fbgrid.set_fbpart(FBPart::END)    );
 
@@ -410,9 +394,10 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnSaveAs();
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnSaveAs()
+        );
 
     }, ID_MENU_SAVEAS);
 
@@ -430,13 +415,19 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnExit();
+        _do_callback_
+        (
+            LambdaOnExit()
+        );
 
     }, ID_MENU_EXIT);
 
     F()->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent& event)
     {
-        LambdaOnExit();
+        _do_callback_
+        (
+            LambdaOnExit()
+        );
     });
 
 
@@ -474,17 +465,19 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnHeaderImport();
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnHeaderImport()
+        );
 
     }, ID_MENU_HEADER_IMPORT);
 
     F()->get_button_header_import()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnHeaderImport();
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnHeaderImport()
+        );
     });
 
     auto LambdaOnHeaderExport = [=]()
@@ -516,17 +509,20 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnHeaderExport();
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnHeaderExport()
+        );
 
     }, ID_MENU_HEADER_EXPORT);
 
     F()->get_button_header_export()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        F()->Freeze();
-        LambdaOnHeaderExport();
-        F()->Thaw();
+        _do_callback_
+        (
+            LambdaOnHeaderExport()
+            
+        );
     });
 
 
@@ -541,13 +537,19 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataAdd();
+        _do_callback_
+        (
+            LambdaDataAdd()
+        );
 
     }, ID_MENU_DATA_ADD);
 
     F()->get_button_data_add()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataAdd();
+        _do_callback_
+        (
+            LambdaDataAdd()
+        );
     });
 
 
@@ -562,20 +564,28 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataDelete();
+        _do_callback_
+        (
+            LambdaDataDelete()
+        ); 
 
     }, ID_MENU_DATA_DELETE);
 
     F()->get_button_data_delete()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataDelete();
-
+        _do_callback_
+        (
+            LambdaDataDelete()
+        );          
     });
 
     // SEARCH BOX
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        F()->get_searchctrl_data_search()->SetFocus();
+        _do_callback_
+        (
+            F()->get_searchctrl_data_search()->SetFocus()
+        );
 
     }, ID_MENU_DATA_SEARCH_BOX);
 
@@ -591,18 +601,27 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward();
+        _do_callback_
+        (
+            LambdaDataSearchForward()
+        );
 
     }, ID_MENU_DATA_SEARCH_FORWARD);
 
     F()->get_searchctrl_data_search()->Bind(wxEVT_SEARCH, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward();
+        _do_callback_
+        (
+            LambdaDataSearchForward()
+        );
     });    
 
     F()->get_button_data_search_forward()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchForward();
+        _do_callback_
+        (
+            LambdaDataSearchForward()
+        );
     });
 
     // SEARCH BACKWARD
@@ -617,13 +636,19 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchBackward();
+        _do_callback_
+        (
+            LambdaDataSearchBackward()
+        );
 
     }, ID_MENU_DATA_SEARCH_BACKWARD);
 
     F()->get_button_data_search_backward()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaDataSearchBackward();
+        _do_callback_
+        (
+            LambdaDataSearchBackward()
+        );
     });
 
     // TRAILER RECALCULATE
@@ -715,19 +740,29 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
-        
+        _do_callback_
+        (
+            LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
+        );
+
     }, ID_MENU_TRAILER_RECALCULATE);
 
     F()->get_button_trailer_recalculated()->Bind(wxEVT_BUTTON, [=](wxCommandEvent& event)
     {
-        LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
+        _do_callback_
+        (
+            LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
+        );
     });
 
     // ABOUT
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
-        myAboutDialogInfo().myAboutBox(F());
+        _do_callback_
+        (
+            myAboutDialogInfo().myAboutBox(F())
+        );
+
     }, ID_MENU_HELP_ABOUT);
 
     // INPUT VALUE ADJUSTMENT
@@ -769,22 +804,34 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->get_grid_header()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_header(), m_fb.get_attrs(FBPart::HEADER));
+        _do_callback_
+        (
+            LambdaOnChangedGridCellValue(event, F()->get_grid_header(), m_fb.get_attrs(FBPart::HEADER))
+        );
     });
 
     F()->get_grid_data()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA));
+        _do_callback_
+        (
+            LambdaOnChangedGridCellValue(event, F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA))
+        );
     });   
 
     F()->get_grid_trailer()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
+        _do_callback_
+        (
+            LambdaOnChangedGridCellValue(event, F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
+        );
     });
 
     F()->get_grid_end()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
     {
-        LambdaOnChangedGridCellValue(event, F()->get_grid_end(), m_fb.get_attrs(FBPart::END));
+        _do_callback_
+        (
+            LambdaOnChangedGridCellValue(event, F()->get_grid_end(), m_fb.get_attrs(FBPart::END))
+        );
     });
 
 }
