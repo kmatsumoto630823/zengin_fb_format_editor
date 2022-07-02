@@ -11,6 +11,7 @@ public:
     virtual ~Controller() = default;
 
     virtual void initialize() = 0;
+    virtual void finalize() = 0;
     bool toggle_view();
 
 protected:

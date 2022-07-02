@@ -7,19 +7,19 @@
 #define F() (InitialController::get_casted_frame())
 #define _do_callback_(collback) do {F()->Freeze(); (collback); F()->force_refresh(); F()->Thaw();} while(0)
 
-class FBGridAdapter
+class FBGrid
 {
 public:
-    FBGridAdapter(FBParser& fb){ set_fb(fb); };
-    ~FBGridAdapter(){};
+    FBGrid(FBParser& fb){ set_fb(fb); };
+    ~FBGrid(){};
 
-    FBGridAdapter& set_fbpart(FBPart part)
+    FBGrid& set_fbpart(FBPart part)
     {
         m_fbpart = part;
         return *this;
     }
 
-    FBGridAdapter& set_fb(FBParser& fb)
+    FBGrid& set_fb(FBParser& fb)
     {
         m_fb = &fb;
         m_fbpart = fb.get_fbpart();
@@ -59,9 +59,19 @@ private:
 template<typename T, typename U>
 inline void grid2grid(T* src, U* dst)
 {
+    if constexpr (std::is_same_v<T, U>)
+    {
+        if(src == dst)
+        {
+            wxLogMessage("srt == dst");
+            return;      
+        }
+    }
+
     if(src->GetNumberCols() != dst->GetNumberCols())
     {
         wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
+        return;
     }
 
     auto num_rows = src->GetNumberRows();
@@ -83,6 +93,15 @@ inline void grid2grid(T* src, U* dst)
 template<typename T, typename U>
 inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
 {
+    if constexpr (std::is_same_v<T, U>)
+    {
+        if(src == dst)
+        {
+            wxLogMessage("srt == dst");
+            return;      
+        }
+    }
+
     if(src->GetNumberCols() != dst->GetNumberCols())
     {
         wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
@@ -108,7 +127,7 @@ inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
     for(decltype(num_rows) row = 0; row < num_rows; row++)  
     {
        
-        if(row % (num_rows / 100 + 1)  == 0)
+        if(row % (num_rows / 100 + 1) == 0)
         {
             update_msg(row, num_rows);
         }
@@ -123,20 +142,23 @@ inline void grid2grid(T* src, U* dst, wxProgressDialog* dlg)
     update_msg(num_rows, num_rows);
 }
 
+
 void InitialController::switch_fbtype(FBType type)
 {
+
+    wxString status_string;
     switch(type)
     {
         case FBType::SOHFURI:
-            F()->SetStatusText("フォーマット；総合振込");
+            status_string = "フォーマット；総合振込";
             break;
 
         case FBType::KYUYO_SHOYO:
-            F()->SetStatusText("フォーマット：給与・賞与振込");
+            status_string = "フォーマット：給与・賞与振込";
             break;
 
         case FBType::FURIKAE:
-            F()->SetStatusText("フォーマット：預金口座振替");
+            status_string = "フォーマット：預金口座振替";
             break;
 
         default:
@@ -145,20 +167,22 @@ void InitialController::switch_fbtype(FBType type)
 
     m_fb.set_fbtype(type, m_chars_kana.ToStdString(wxCSConv("cp932")));
 
-    F()->reset_grid(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) );
-    F()->reset_grid(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   );
-    F()->reset_grid(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER));
-    F()->reset_grid(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    );
+    F()->get_grid_header() ->reset(m_fb.get_attrs(FBPart::HEADER ));
+    F()->get_grid_data()   ->reset(m_fb.get_attrs(FBPart::DATA   ));
+    F()->get_grid_trailer()->reset(m_fb.get_attrs(FBPart::TRAILER)); 
+    F()->get_grid_end()    ->reset(m_fb.get_attrs(FBPart::END    )); 
 
+    F()->SetStatusText(status_string);
     F()->force_refresh();
 }
 
 bool InitialController::is_edited_any()
 {
-    if(F()->is_edited(F()->get_grid_header() , m_fb.get_attrs(FBPart::HEADER) )) return true;
-    if(F()->is_edited(F()->get_grid_data()   , m_fb.get_attrs(FBPart::DATA)   )) return true;
-    if(F()->is_edited(F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))) return true;
-    if(F()->is_edited(F()->get_grid_end()    , m_fb.get_attrs(FBPart::END)    )) return true;
+
+    if(F()->get_grid_header() ->is_edited()) return true;
+    if(F()->get_grid_data()   ->is_edited()) return true;
+    if(F()->get_grid_trailer()->is_edited()) return true;
+    if(F()->get_grid_end()    ->is_edited()) return true;          
 
     return false; 
 }
@@ -214,12 +238,17 @@ void InitialController::create_frame(wxFileConfig& config)
     F()->SetSize(wxSize(w, h));
 }
 
+void InitialController::finalize()
+{
+
+}
+
 
 void InitialController::create_binds(wxFileConfig& config)
 {
 
     // NEW
-    auto LambdaOnNew = [=]()
+    auto OnNew = [=]()
     {
         if(is_edited_any())
         {
@@ -245,13 +274,13 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnNew()
+            OnNew()
         );
 
     }, ID_MENU_NEW);
 
     // OPEN
-    auto LambdaOnOpen = [=](const wxString& default_path)
+    auto OnOpen = [=](const wxString& default_path)
     {
         auto path = default_path;
 
@@ -280,7 +309,7 @@ void InitialController::create_binds(wxFileConfig& config)
         if(m_fb.get_number_rows(FBPart::TRAILER) != 1) {wxLogMessage("m_fb.get_rows_num(FBPart::TRAILER) != 1"); return;}
         if(m_fb.get_number_rows(FBPart::END)     != 1) {wxLogMessage("m_fb.get_rows_num(FBPart::END)     != 1"); return;}
 
-        FBGridAdapter fbgrid(m_fb);  
+        FBGrid fbgrid(m_fb);  
         wxProgressDialog pdialog("進捗", " ", 100, F());
 
         grid2grid(&fbgrid.set_fbpart(FBPart::HEADER)  ,F()->get_grid_header()->GetTable() );
@@ -294,7 +323,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnOpen("")
+            OnOpen("")
         );
         
     }, ID_MENU_OPEN);
@@ -310,12 +339,12 @@ void InitialController::create_binds(wxFileConfig& config)
         
         _do_callback_
         (
-            LambdaOnOpen(event.GetFiles()[0])
+            OnOpen(event.GetFiles()[0])
         );
     });
 
     // SAVEAS
-    auto LambdaOnSaveAs = [=]()
+    auto OnSaveAs = [=]()
     {
         F()->save_editing_value();
 
@@ -373,7 +402,7 @@ void InitialController::create_binds(wxFileConfig& config)
         wxFileDialog fdialog(F(), "FBデータの保存", m_export_path, wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        FBGridAdapter fbgrid(m_fb);
+        FBGrid fbgrid(m_fb);
         wxProgressDialog pdialog("進捗", " ", 100, F());
 
         grid2grid(F()->get_grid_header()->GetTable() , &fbgrid.set_fbpart(FBPart::HEADER) );
@@ -396,13 +425,13 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnSaveAs()
+            OnSaveAs()
         );
 
     }, ID_MENU_SAVEAS);
 
      // EXIT
-    auto LambdaOnExit = [=]()
+    auto OnExit = [=]()
     {
         if(is_edited_any())
         {
@@ -417,7 +446,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnExit()
+            OnExit()
         );
 
     }, ID_MENU_EXIT);
@@ -426,12 +455,12 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnExit()
+            OnExit()
         );
     });
 
 
-    auto LambdaOnHeaderImport = [=]()
+    auto OnHeaderImport = [=]()
     {
         if(F()->get_grid_header()->GetNumberRows() != 1)
         {
@@ -456,7 +485,7 @@ void InitialController::create_binds(wxFileConfig& config)
         const int torikumibi_col = 5; 
         auto value = F()->get_grid_header()->GetCellValue(0, torikumibi_col);
 
-        FBGridAdapter fbgrid(m_fb);
+        FBGrid fbgrid(m_fb);
         grid2grid(&fbgrid.set_fbpart(FBPart::HEADER) ,F()->get_grid_header()->GetTable() );
 
         F()->get_grid_header()->SetCellValue(0, torikumibi_col, value);
@@ -467,7 +496,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnHeaderImport()
+            OnHeaderImport()
         );
 
     }, ID_MENU_HEADER_IMPORT);
@@ -476,11 +505,11 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnHeaderImport()
+            OnHeaderImport()
         );
     });
 
-    auto LambdaOnHeaderExport = [=]()
+    auto OnHeaderExport = [=]()
     {
         F()->save_editing_value();
 
@@ -489,7 +518,7 @@ void InitialController::create_binds(wxFileConfig& config)
         wxFileDialog fdialog(F(), "プリセット保存", m_preset_path, wxEmptyString, "PRESET files (*.preset)|*.preset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        FBGridAdapter fbgrid(m_fb);
+        FBGrid fbgrid(m_fb);
         grid2grid(F()->get_grid_header()->GetTable() , &fbgrid.set_fbpart(FBPart::HEADER) );
         m_fb.assign_rows(0, FBPart::DATA);
         m_fb.assign_rows(0, FBPart::TRAILER);
@@ -511,7 +540,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnHeaderExport()
+            OnHeaderExport()
         );
 
     }, ID_MENU_HEADER_EXPORT);
@@ -520,18 +549,17 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnHeaderExport()
+            OnHeaderExport()
             
         );
     });
 
 
     // DATA ADD
-    auto LambdaDataAdd = [=]()
+    auto DataAdd = [=]()
     {
         auto grid = F()->get_grid_data();
-        auto attrs = m_fb.get_attrs(FBPart::DATA);
-        F()->insert_selected(grid, attrs);
+        grid->insert_selected();
 
     };
 
@@ -539,7 +567,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataAdd()
+            DataAdd()
         );
 
     }, ID_MENU_DATA_ADD);
@@ -548,17 +576,16 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataAdd()
+            DataAdd()
         );
     });
 
 
     // DATA DELETE
-    auto LambdaDataDelete = [=]()
+    auto DataDelete = [=]()
     {
         auto grid = F()->get_grid_data();
-        auto attrs = m_fb.get_attrs(FBPart::DATA);
-        F()->delete_selected(grid, attrs);
+        grid->delete_selected();
 
     };
 
@@ -566,7 +593,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataDelete()
+            DataDelete()
         ); 
 
     }, ID_MENU_DATA_DELETE);
@@ -575,7 +602,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataDelete()
+            DataDelete()
         );          
     });
 
@@ -590,20 +617,20 @@ void InitialController::create_binds(wxFileConfig& config)
     }, ID_MENU_DATA_SEARCH_BOX);
 
     // SEARCH FORWARD
-    auto LambdaDataSearchForward = [=]()
+    auto DataSearchForward = [=]()
     {
         auto grid = F()->get_grid_data();
         auto search_value = F()->get_searchctrl_data_search()->GetValue();
         auto is_forward = true;
         
-        return F()->search_next_value(grid, search_value, is_forward);
+        grid->search_next_value(search_value, is_forward);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
         _do_callback_
         (
-            LambdaDataSearchForward()
+            DataSearchForward()
         );
 
     }, ID_MENU_DATA_SEARCH_FORWARD);
@@ -612,7 +639,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataSearchForward()
+            DataSearchForward()
         );
     });    
 
@@ -620,25 +647,25 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataSearchForward()
+            DataSearchForward()
         );
     });
 
     // SEARCH BACKWARD
-    auto LambdaDataSearchBackward = [=]()
+    auto DataSearchBackward = [=]()
     {
         auto grid = F()->get_grid_data();
         auto search_value = F()->get_searchctrl_data_search()->GetValue();
         auto is_forward = false;
         
-        return F()->search_next_value(grid, search_value, is_forward);
+        grid->search_next_value(search_value, is_forward);
     };
 
     F()->Bind(wxEVT_MENU, [=](wxCommandEvent& event)
     {
         _do_callback_
         (
-            LambdaDataSearchBackward()
+            DataSearchBackward()
         );
 
     }, ID_MENU_DATA_SEARCH_BACKWARD);
@@ -647,12 +674,12 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaDataSearchBackward()
+            DataSearchBackward()
         );
     });
 
     // TRAILER RECALCULATE
-    auto LambdaOnTrailerRecalculate = [=](wxGrid* grid_data, FBAttrs fb_data_attrs, wxGrid* grid_trailer, FBAttrs fb_trailer_attrs)
+    auto OnTrailerRecalculate = [=](wxGrid* grid_data, FBAttrs fb_data_attrs, wxGrid* grid_trailer, FBAttrs fb_trailer_attrs)
     {
         if(grid_trailer->GetNumberRows() != 1)
         {
@@ -742,7 +769,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
+            OnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
         );
 
     }, ID_MENU_TRAILER_RECALCULATE);
@@ -751,7 +778,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         _do_callback_
         (
-            LambdaOnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
+            OnTrailerRecalculate(F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA), F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
         );
     });
 
@@ -764,75 +791,6 @@ void InitialController::create_binds(wxFileConfig& config)
         );
 
     }, ID_MENU_HELP_ABOUT);
-
-    // INPUT VALUE ADJUSTMENT
-    auto LambdaOnChangedGridCellValue = [=](wxGridEvent& event, wxGrid* grid, const FBAttrs& fb_attrs)
-    {
-        auto row = event.GetRow();
-        auto col = event.GetCol();
-
-        auto& attr = fb_attrs[col];
-        auto value = grid->GetCellValue(row, col);
-
-        if(attr.length - value.length() < 0)
-        {
-            wxLogMessage("length - value.length() < 0");
-            return;
-        }
-
-        value.Trim(true);
-        value.Trim(false);
-
-        if(attr.initial_value != nullptr && value.length() == 0 )
-        {
-            value = attr.initial_value;
-        }
-
-        if(attr.pad_info[0] == 'R')      value.append(   attr.length - value.length(), attr.pad_info[1]);
-        else if(attr.pad_info[0] == 'L') value.insert(0, attr.length - value.length(), attr.pad_info[1]);
-
-        if(value != attr.initial_value && value.find_first_not_of(attr.char_includes) != wxNOT_FOUND)
-        {
-            wxMessageDialog mdialog(grid, "不正な値です\r\n編集前の値に戻します", "警告", wxOK | wxICON_WARNING);
-            mdialog.ShowModal();
-            value = event.GetString();
-        }
-
-        grid->SetCellValue(row, col, value);
-
-    };
-
-    F()->get_grid_header()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
-    {
-        _do_callback_
-        (
-            LambdaOnChangedGridCellValue(event, F()->get_grid_header(), m_fb.get_attrs(FBPart::HEADER))
-        );
-    });
-
-    F()->get_grid_data()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
-    {
-        _do_callback_
-        (
-            LambdaOnChangedGridCellValue(event, F()->get_grid_data(), m_fb.get_attrs(FBPart::DATA))
-        );
-    });   
-
-    F()->get_grid_trailer()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
-    {
-        _do_callback_
-        (
-            LambdaOnChangedGridCellValue(event, F()->get_grid_trailer(), m_fb.get_attrs(FBPart::TRAILER))
-        );
-    });
-
-    F()->get_grid_end()->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
-    {
-        _do_callback_
-        (
-            LambdaOnChangedGridCellValue(event, F()->get_grid_end(), m_fb.get_attrs(FBPart::END))
-        );
-    });
 
 }
 

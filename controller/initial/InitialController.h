@@ -13,7 +13,8 @@ public:
     InitialController() = default;
     ~InitialController() = default;
 
-    virtual void initialize() override; 
+    virtual void initialize() override;
+    virtual void finalize() override;
 
 private:
     void switch_fbtype(FBType type);
