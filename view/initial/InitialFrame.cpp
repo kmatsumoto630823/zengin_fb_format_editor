@@ -14,8 +14,8 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     // MENU FILE
     menu_file = new wxMenu;
     menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU));
-    menu_file->Append(ID_MENU_OPEN, "FBデータを開く")->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxART_MENU));
-    menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存")->SetBitmap(wxArtProvider::GetBitmap(wxART_FLOPPY, wxART_MENU));
+    menu_file->Append(ID_MENU_OPEN, "FBデータを開く");//->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
+    menu_file->Append(ID_MENU_SAVEAS, "名前をつけて保存");//->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
     menu_file->AppendSeparator();
     menu_file->Append(ID_MENU_EXIT, "終了\tCtrl+Q")->SetBitmap(wxArtProvider::GetBitmap(wxART_CLOSE, wxART_MENU));
 
@@ -23,11 +23,13 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     menu_edit = new wxMenu;
     menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：プリセット選択")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
     menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：プリセット出力")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
+    menu_edit->Append(ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD, "＠ヘッダ：クリップボード読込")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
     menu_edit->AppendSeparator();
     menu_edit->Append(ID_MENU_DATA_ADD, "＠データ：行追")->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete")->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_MENU));
+    menu_edit->Append(ID_MENU_DATA_ADD_FROM_CLIPBOARD, "＠データ：クリップボード行追")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_MENU));
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラ：再計算")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
 
     // MENU SEARCH
     menu_search = new wxMenu;
@@ -55,18 +57,20 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     grid_header = new customGrid(panel_top, wxID_ANY);
     button_header_import = new wxButton(panel_top, wxID_ANY, "プリセット選択"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
     button_header_export = new wxButton(panel_top, wxID_ANY, "プリセット出力"); button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
+    button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "クリップボード読込"); button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
 
     //GRID_DATA
     grid_data = new customGrid(panel_top, wxID_ANY);
     button_data_add = new wxButton(panel_top, wxID_ANY, "行追"); button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR));
     button_data_delete = new wxButton(panel_top, wxID_ANY, "行削"); button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_TOOLBAR));
+    button_data_add_from_clipboard = new wxButton(panel_top, wxID_ANY, "クリップボード行追"); button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
     searchctrl_data_search = new wxSearchCtrl(panel_top, wxID_ANY);
     button_data_search_forward = new wxButton(panel_top, wxID_ANY, "次検索"); button_data_search_forward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
     button_data_search_backward = new wxButton(panel_top, wxID_ANY, "前検索"); button_data_search_backward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
 
     //GRID_TRAILER
     grid_trailer = new customGrid(panel_top, wxID_ANY);
-    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_TOOLBAR));
+    button_trailer_recalculate = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculate->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_TOOLBAR));
 
     //GRID_END
     grid_end = new customGrid(panel_top, wxID_ANY);
@@ -74,11 +78,14 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     //SIZER
     auto sizer_top = new wxBoxSizer(wxVERTICAL);
     panel_top->SetSizer(sizer_top);
+        sizer_top->AddSpacer(10);
+
         auto sizer_header_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_header_label, 0, wxALIGN_LEFT);
             sizer_header_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠ヘッダレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_header_label->Add(button_header_import, 0, wxALIGN_BOTTOM);
-            sizer_header_label->Add(button_header_export, 0, wxALIGN_BOTTOM);
+            sizer_header_label->Add(button_header_export, 0, wxALIGN_BOTTOM | wxRIGHT, 50);
+            sizer_header_label->Add(button_header_import_from_clipboard, 0, wxALIGN_BOTTOM);
         sizer_top->Add(grid_header, 0, wxALIGN_LEFT | wxLEFT, 1);
         sizer_top->AddSpacer(10);
 
@@ -87,6 +94,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
             sizer_data_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠データレコード：　"), 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_add, 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_delete, 0, wxALIGN_BOTTOM | wxRIGHT, 50);
+            sizer_data_label->Add(button_data_add_from_clipboard, 0, wxALIGN_BOTTOM | wxRIGHT, 50);
             sizer_data_label->Add(searchctrl_data_search, 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_search_forward, 0, wxALIGN_BOTTOM);
             sizer_data_label->Add(button_data_search_backward, 0, wxALIGN_BOTTOM);
@@ -168,6 +176,11 @@ wxButton* InitialFrame::get_button_header_export()
     return button_header_export;
 }
 
+wxButton* InitialFrame::get_button_header_import_from_clipboard()
+{
+    return button_header_import_from_clipboard;   
+}
+
 customGrid* InitialFrame::get_grid_data()
 {
     return grid_data;
@@ -181,6 +194,11 @@ wxButton* InitialFrame::get_button_data_add()
 wxButton* InitialFrame::get_button_data_delete()
 {
     return button_data_delete;
+}
+
+wxButton* InitialFrame::get_button_data_add_from_clipboard()
+{
+    return button_data_add_from_clipboard;
 }
 
 wxSearchCtrl* InitialFrame::get_searchctrl_data_search()

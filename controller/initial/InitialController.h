@@ -1,9 +1,9 @@
 #ifndef INITIALCONTROLLER_H
 #define INITIALCONTROLLER_H
 
+#include "common/FBAttrs.h"
 #include "../Controller.h"
 #include "view/initial/InitialFrame.h"
-#include "model/FBParser.h"
 
 #include <wx/fileconf.h>
 
@@ -24,15 +24,17 @@ private:
     void create_binds(wxFileConfig& config);
 
     auto get_casted_frame(){return (InitialFrame*) frame;}
-
-    FBParser m_fb;
     
-    wxString m_app_name;
     wxString m_preset_path;
     wxString m_export_path;
     wxString m_fbdata_path;
 
-    wxString m_chars_kana;
+    FBAttrsArray m_fb_attrs_array;
+
+    std::string m_chars_kana;
+    std::string m_pad_kana;
+    std::string m_chars_num;
+    std::string m_pad_num;
 };
 
 #endif //INITIALCONTROLLER_H

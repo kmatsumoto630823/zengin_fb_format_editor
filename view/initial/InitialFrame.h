@@ -10,7 +10,6 @@
 #include <wx/srchctrl.h>
 
 
-
 enum ID_MENU
 {
     ID_MENU_NEW,
@@ -19,9 +18,11 @@ enum ID_MENU
     ID_MENU_EXIT,
 
     ID_MENU_HEADER_IMPORT,
-    ID_MENU_HEADER_EXPORT,    
+    ID_MENU_HEADER_EXPORT,
+    ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD,
     ID_MENU_DATA_ADD,
     ID_MENU_DATA_DELETE,
+    ID_MENU_DATA_ADD_FROM_CLIPBOARD,
     ID_MENU_TRAILER_RECALCULATE,
 
     ID_MENU_DATA_SEARCH_BOX,
@@ -51,10 +52,12 @@ public:
     customGrid* get_grid_header();
     wxButton* get_button_header_import();
     wxButton* get_button_header_export();
+    wxButton* get_button_header_import_from_clipboard();
 
     customGrid* get_grid_data();
     wxButton* get_button_data_add();
     wxButton* get_button_data_delete();
+    wxButton* get_button_data_add_from_clipboard();
     wxSearchCtrl* get_searchctrl_data_search();
     wxButton* get_button_data_search_forward();
     wxButton* get_button_data_search_backward();
@@ -76,10 +79,12 @@ private:
     customGrid* grid_header;
     wxButton* button_header_import;
     wxButton* button_header_export;
+    wxButton* button_header_import_from_clipboard;
 
     customGrid* grid_data;
     wxButton* button_data_add;
     wxButton* button_data_delete;
+    wxButton* button_data_add_from_clipboard;
     wxSearchCtrl* searchctrl_data_search;
     wxButton* button_data_search_forward;
     wxButton* button_data_search_backward;

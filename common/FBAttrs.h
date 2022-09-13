@@ -3,6 +3,7 @@
 
 #include<vector>
 #include<array>
+#include<string>
 
 enum class FBPart : int
 {
@@ -49,7 +50,7 @@ constexpr std::array<const char*, (int)FBNewLine::ITEM_NUM > FB_NEWLINE_CODE =
 
 struct FBAttr
 {
-    std::size_t  num;
+    std::size_t  order;
     const char*  label;
     std::size_t  offset;
     std::size_t  length;
@@ -62,17 +63,14 @@ struct FBAttr
 using FBAttrs = std::vector<FBAttr>;
 using FBAttrsArray = std::array<FBAttrs, (int)FBPart::ITEM_NUM>;
 
-extern const char CHARS_NUM[];
-extern const char PAD_NUM[];
+FBAttrsArray make_fb_attrs_array
+(
+    FBType type = FBType::SOHFURI,
+    const char* chars_kana = nullptr,
+    const char* pad_kana   = nullptr,
+    const char* chars_num  = nullptr,
+    const char* pad_num    = nullptr   
+);
 
-extern const char CHARS_KANA[];
-extern const char PAD_KANA[];
-
-extern const char CHARS_DUMMY[];
-extern const char PAD_DUMMY[];
-
-extern const FBAttrsArray ATTRS_ARRAY_SOHFURI;
-extern const FBAttrsArray ATTRS_ARRAY_KYUYO_SHOYO;
-extern const FBAttrsArray ATTRS_ARRAY_FURIKAE;
 
 #endif //FBATTRS_H

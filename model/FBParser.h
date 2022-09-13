@@ -14,23 +14,18 @@ using FBBlockArray = std::array<FBBlock, (int)FBPart::ITEM_NUM>;
 class FBParser final
 {
 public:
-    FBParser();
+    FBParser(const FBAttrsArray& attrs_array);
     ~FBParser();
 
     bool open_file(const std::string& path); 
     bool save_file(const std::string& path);
+    bool from_text(const std::string& text);
 
     FBParser& set_newline(FBNewLine newline = FBNewLine::CRLF);
     FBNewLine get_newline();
 
-    FBParser& set_fbtype(FBType type = FBType::SOHFURI, std::string_view chars_kana = "");
-    FBType get_fbtype();
-
-    FBParser& set_fbpart(FBPart part = FBPart::HEADER);
-    FBPart get_fbpart();
-
-    const FBAttrs& get_attrs(FBPart part = FBPart::CURRENT);
-    const FBAttrsArray& get_attrs_array();
+    FBParser& set_current_part(FBPart part = FBPart::HEADER);
+    FBPart get_current_part();
 
     // For Grid Operation
     std::size_t get_number_rows(FBPart part = FBPart::CURRENT);
@@ -46,14 +41,10 @@ public:
 
 private:
     FBNewLine m_newline;
-
-    FBType m_fbtype;
-    FBPart m_fbpart;
+    FBPart m_current_part;
 
     FBBlockArray m_block_array;
-    FBAttrsArray m_attrs_array;
-
-    std::string m_chars_kana;
+    const FBAttrsArray& m_attrs_array;
 };
 
 #endif //FBDATAPARSER_H

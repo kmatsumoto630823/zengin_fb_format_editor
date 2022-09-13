@@ -17,7 +17,7 @@ void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandle
     if(m_label.empty()) return;
     if(m_description.empty()) return;
 
-    Text()->Bind(wxEVT_CHAR_HOOK, [=](wxKeyEvent& event)
+    Text()->Bind(wxEVT_CHAR_HOOK, [=, this](wxKeyEvent& event)
     {
         event.DoAllowNextEvent();
 
@@ -137,12 +137,12 @@ customGrid::customGrid
     this->CreateGrid(0, 0, wxGrid::wxGridSelectRows);
     //this->EnableDragRowMove();
 
-    this->Bind(wxEVT_GRID_CELL_CHANGED, [=](wxGridEvent& event)
+    this->Bind(wxEVT_GRID_CELL_CHANGED, [=, this](wxGridEvent& event)
     {
         auto row = event.GetRow();
         auto col = event.GetCol();
 
-        auto& attr = m_attrs[col];
+        auto& attr = m_fb_attrs[col];
         auto value = this->GetCellValue(row, col);
 
         if(attr.length - value.length() < 0)
@@ -170,7 +170,12 @@ customGrid::customGrid
         }
 
         this->SetCellValue(row, col, value);
-    });    
+    });
+
+    this->Bind(wxEVT_GRID_LABEL_LEFT_CLICK, [=, this](wxGridEvent& event)
+    {
+
+    });  
 };
 
 customGrid::~customGrid()
@@ -178,9 +183,9 @@ customGrid::~customGrid()
 
 };
 
-void customGrid::reset(const FBAttrs& attrs)
+void customGrid::reset(const FBAttrs& fb_attrs)
 {
-    m_attrs = attrs;
+    m_fb_attrs = fb_attrs;
 
     if(auto h = this->GetNumberRows(); h > 0) this->DeleteRows(0, h);
     if(auto w = this->GetNumberCols(); w > 0) this->DeleteCols(0, w);
@@ -191,11 +196,11 @@ void customGrid::reset(const FBAttrs& attrs)
         return;
     }
 
-    this->AppendCols(m_attrs.size());
+    this->AppendCols(m_fb_attrs.size());
 
-    for(auto& attr : m_attrs)
+    for(auto& attr : m_fb_attrs)
     {
-        auto col = attr.num;
+        auto col = attr.order;
 
         this->SetColLabelValue(col, attr.label);
 
@@ -213,15 +218,15 @@ void customGrid::reset(const FBAttrs& attrs)
 
     this->AppendRows();
 
-    if(m_attrs.size() > this->GetNumberCols())
+    if(m_fb_attrs.size() > this->GetNumberCols())
     {
-        wxLogMessage("m_attrs.size() > this->GetNumberCols()");
+        wxLogMessage("m_fb_attrs.size() > this->GetNumberCols()");
         return;
     }
 
-    for(auto& attr : m_attrs)
+    for(auto& attr : m_fb_attrs)
     {
-        auto col = attr.num;
+        auto col = attr.order;
         auto row = this->GetNumberRows() - 1;
         auto value = wxString(attr.length, attr.pad_info[1]);
 
@@ -244,9 +249,9 @@ bool customGrid::is_edited()
 {
     if(this->GetNumberRows() != 1) return false;
 
-    for(auto& attr : m_attrs)
+    for(auto& attr : m_fb_attrs)
     {
-        auto col = attr.num;
+        auto col = attr.order;
         auto row = this->GetNumberRows() - 1;
         auto value = this->GetCellValue(row, col);
 
@@ -261,9 +266,9 @@ bool customGrid::is_edited()
 
 void customGrid::insert_selected()
 {
-    if(m_attrs.size() > this->GetNumberCols())
+    if(m_fb_attrs.size() > this->GetNumberCols())
     {
-        wxLogMessage("m_attrs.size() > this->GetNumberCols()");
+        wxLogMessage("m_fb_attrs.size() > this->GetNumberCols()");
         return;
     }
 
@@ -295,10 +300,10 @@ void customGrid::insert_selected()
         {
             this->InsertRows(insert_pos);
 
-            for(auto& attr : m_attrs)
+            for(auto& attr : m_fb_attrs)
             {
                 auto row = insert_pos;
-                auto col = attr.num;
+                auto col = attr.order;
                 auto value = wxString(attr.length, attr.pad_info[1]);
 
                 if(attr.initial_value != nullptr) value = attr.initial_value;

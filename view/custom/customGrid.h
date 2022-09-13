@@ -38,7 +38,7 @@ public:
     );
     virtual ~customGrid();
 
-    void reset(const FBAttrs& attrs);
+    void reset(const FBAttrs& fb_attrs);
     
     bool is_edited();
     void insert_selected();
@@ -46,7 +46,7 @@ public:
     void search_next_value(const wxString& search_value, bool forward);   
 
 private:
-    FBAttrs m_attrs;
+    FBAttrs m_fb_attrs;
 };
 
 #endif // _CUSTOM_GRID_H_
