@@ -1,5 +1,9 @@
 #include "FBAttrs.h"
 
+const char* NM = "NM";
+const char* KN = "KN";
+
+
 //SOHFURI
 const FBAttrsArray ATTRS_ARRAY_SOHFURI =
 {
@@ -170,7 +174,7 @@ const auto pad_kana_default    = "R ";
 const auto chars_num_default   = "0123456789";
 const auto pad_num_default     = "L0";
 
-FBAttrsArray make_fb_attrs_array
+FBAttrsArray make_attrs_array
 (
     FBType type,
     const char* chars_kana,

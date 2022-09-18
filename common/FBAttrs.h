@@ -30,7 +30,7 @@ enum class FBType : int
     ITEM_NUM
 };
 
-enum FBNewLine : int
+enum class FBNewLine : int
 {
     CURRENT = -1,
     CRLF = 0,
@@ -40,7 +40,7 @@ enum FBNewLine : int
     ITEM_NUM
 };
 
-constexpr std::array<const char*, (int)FBNewLine::ITEM_NUM > FB_NEWLINE_CODE = 
+constexpr std::array<const char*, (std::underlying_type_t<FBNewLine>)FBNewLine::ITEM_NUM> FB_NEWLINE_CODE = 
 {
     "\r\n",
     "\r",
@@ -61,15 +61,15 @@ struct FBAttr
 };
 
 using FBAttrs = std::vector<FBAttr>;
-using FBAttrsArray = std::array<FBAttrs, (int)FBPart::ITEM_NUM>;
+using FBAttrsArray = std::array<FBAttrs, (std::underlying_type_t<FBPart>)FBPart::ITEM_NUM>;
 
-FBAttrsArray make_fb_attrs_array
+FBAttrsArray make_attrs_array
 (
     FBType type = FBType::SOHFURI,
     const char* chars_kana = nullptr,
     const char* pad_kana   = nullptr,
     const char* chars_num  = nullptr,
-    const char* pad_num    = nullptr   
+    const char* pad_num    = nullptr
 );
 
 

@@ -16,7 +16,6 @@ public:
 
 protected:
     wxFrame *frame;
-
 };
 
 #endif //CONTROLLER_H

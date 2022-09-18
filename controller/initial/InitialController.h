@@ -17,7 +17,7 @@ public:
     virtual void finalize() override;
 
 private:
-    void switch_fbtype(FBType type);
+    void switch_type(FBType type);
     bool is_edited_any();
     
     void create_frame(wxFileConfig& config);
@@ -29,7 +29,7 @@ private:
     wxString m_export_path;
     wxString m_fbdata_path;
 
-    FBAttrsArray m_fb_attrs_array;
+    FBAttrsArray m_attrs_array;
 
     std::string m_chars_kana;
     std::string m_pad_kana;

@@ -129,7 +129,7 @@ customGrid::customGrid
     font_grid_cell.SetPointSize(12);
     font_grid_cell.SetFamily(wxFONTFAMILY_TELETYPE);
 
-    this->SetGridLineColour(wxColour(0,0,0));
+    this->SetGridLineColour(wxColour(0, 0, 0));
     this->SetDefaultCellFont(font_grid_cell);
     this->SetTabBehaviour(wxGrid::Tab_Wrap);
     this->SetCellHighlightColour(this->GetSelectionBackground());
@@ -142,7 +142,7 @@ customGrid::customGrid
         auto row = event.GetRow();
         auto col = event.GetCol();
 
-        auto& attr = m_fb_attrs[col];
+        auto& attr = m_attrs[col];
         auto value = this->GetCellValue(row, col);
 
         if(attr.length - value.length() < 0)
@@ -183,9 +183,9 @@ customGrid::~customGrid()
 
 };
 
-void customGrid::reset(const FBAttrs& fb_attrs)
+void customGrid::reset(const FBAttrs& attrs)
 {
-    m_fb_attrs = fb_attrs;
+    m_attrs = attrs;
 
     if(auto h = this->GetNumberRows(); h > 0) this->DeleteRows(0, h);
     if(auto w = this->GetNumberCols(); w > 0) this->DeleteCols(0, w);
@@ -196,9 +196,9 @@ void customGrid::reset(const FBAttrs& fb_attrs)
         return;
     }
 
-    this->AppendCols(m_fb_attrs.size());
+    this->AppendCols(m_attrs.size());
 
-    for(auto& attr : m_fb_attrs)
+    for(auto& attr : m_attrs)
     {
         auto col = attr.order;
 
@@ -207,24 +207,34 @@ void customGrid::reset(const FBAttrs& fb_attrs)
         auto col_attr = new wxGridCellAttr;
         auto col_editor = new trimGridCellTextEditor(attr.length);
 
-        if(attr.char_includes != nullptr)
-            col_editor->SetValidString(attr.char_includes);
-        if(attr.label != nullptr && attr.description != nullptr)
-            col_editor->SetTipString(attr.label, attr.description);
+        if(attr.order == 0)
+        {
+            col_attr->SetReadOnly();
+        }
 
+
+        if(attr.char_includes != nullptr)
+        {
+            col_editor->SetValidString(attr.char_includes);
+        }
+        if(attr.label != nullptr && attr.description != nullptr)
+        {
+            col_editor->SetTipString(attr.label, attr.description);
+        }
+            
         col_attr->SetEditor(col_editor);
         this->SetColAttr(col, col_attr);    
     }
 
     this->AppendRows();
 
-    if(m_fb_attrs.size() > this->GetNumberCols())
+    if(m_attrs.size() > this->GetNumberCols())
     {
-        wxLogMessage("m_fb_attrs.size() > this->GetNumberCols()");
+        wxLogMessage("m_attrs.size() > this->GetNumberCols()");
         return;
     }
 
-    for(auto& attr : m_fb_attrs)
+    for(auto& attr : m_attrs)
     {
         auto col = attr.order;
         auto row = this->GetNumberRows() - 1;
@@ -249,7 +259,7 @@ bool customGrid::is_edited()
 {
     if(this->GetNumberRows() != 1) return false;
 
-    for(auto& attr : m_fb_attrs)
+    for(auto& attr : m_attrs)
     {
         auto col = attr.order;
         auto row = this->GetNumberRows() - 1;
@@ -266,9 +276,9 @@ bool customGrid::is_edited()
 
 void customGrid::insert_selected()
 {
-    if(m_fb_attrs.size() > this->GetNumberCols())
+    if(m_attrs.size() > this->GetNumberCols())
     {
-        wxLogMessage("m_fb_attrs.size() > this->GetNumberCols()");
+        wxLogMessage("m_attrs.size() > this->GetNumberCols()");
         return;
     }
 
@@ -300,7 +310,7 @@ void customGrid::insert_selected()
         {
             this->InsertRows(insert_pos);
 
-            for(auto& attr : m_fb_attrs)
+            for(auto& attr : m_attrs)
             {
                 auto row = insert_pos;
                 auto col = attr.order;
@@ -310,7 +320,8 @@ void customGrid::insert_selected()
 
                 this->SetCellValue(row, col, value);                    
             }
-
+            
+            if(insert_pos != this->GetNumberRows() - 1)
             this->SelectRow(insert_pos, true);
         }
     }
@@ -408,8 +419,8 @@ void customGrid::search_next_value(const wxString& search_value, bool is_forward
         auto current_value = this->GetCellValue(current_row, current_col);
         if(current_value.find(search_value) != wxNOT_FOUND)
         {
-            this->SetFocus();
             this->GoToCell(current_row, current_col);
+            this->SetFocus();
             return;
         }
 
@@ -419,7 +430,8 @@ void customGrid::search_next_value(const wxString& search_value, bool is_forward
     wxMessageDialog mdialog(this, "Œ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½", "î•ñ", wxOK);
     mdialog.ShowModal();
 
-    this->SetFocus();
     this->GoToCell(first_row, first_col);
+    this->SetFocus();
+
     return;
 } 

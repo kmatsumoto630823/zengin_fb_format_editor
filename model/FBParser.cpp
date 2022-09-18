@@ -30,7 +30,7 @@ bool FBParser::open_file(const std::string& path)
     auto file_size = fb_ifs.tellg();
     if(file_size > 104'857'600)
     {
-        wxLogMessage("file_size > 104'857'600");
+        wxLogMessage("file_size > 100MB");
         return false;
     }
 
@@ -59,7 +59,7 @@ bool FBParser::save_file(const std::string& path)
     for(auto& block : m_block_array)
     {
         for(auto& line : block)
-        fb_ofs << std::string_view(line.data()) << FB_NEWLINE_CODE[m_newline];
+        fb_ofs << std::string_view(line.data()) << FB_NEWLINE_CODE[(std::underlying_type_t<FBNewLine>)m_newline];
     }
 
 
@@ -106,23 +106,23 @@ bool FBParser::from_text(const std::string& text)
         switch(record_kb)
         {
             case FB_PART_HEADER :
-                attrs_ref = &m_attrs_array.at((int)FBPart::HEADER);
-                block_ref = &m_block_array.at((int)FBPart::HEADER);
+                attrs_ref = &m_attrs_array.at((std::underlying_type_t<FBPart>)FBPart::HEADER);
+                block_ref = &m_block_array.at((std::underlying_type_t<FBPart>)FBPart::HEADER);
                 break;
 
             case FB_PART_DATA :
-                attrs_ref = &m_attrs_array.at((int)FBPart::DATA);
-                block_ref = &m_block_array.at((int)FBPart::DATA);
+                attrs_ref = &m_attrs_array.at((std::underlying_type_t<FBPart>)FBPart::DATA);
+                block_ref = &m_block_array.at((std::underlying_type_t<FBPart>)FBPart::DATA);
                 break;
             
             case FB_PART_TRAILER :
-                attrs_ref = &m_attrs_array.at((int)FBPart::TRAILER);
-                block_ref = &m_block_array.at((int)FBPart::TRAILER);
+                attrs_ref = &m_attrs_array.at((std::underlying_type_t<FBPart>)FBPart::TRAILER);
+                block_ref = &m_block_array.at((std::underlying_type_t<FBPart>)FBPart::TRAILER);
                 break;
 
             case FB_PART_END :
-                attrs_ref = &m_attrs_array.at((int)FBPart::END);
-                block_ref = &m_block_array.at((int)FBPart::END);
+                attrs_ref = &m_attrs_array.at((std::underlying_type_t<FBPart>)FBPart::END);
+                block_ref = &m_block_array.at((std::underlying_type_t<FBPart>)FBPart::END);
                 break;
 
             default:
@@ -179,7 +179,7 @@ FBNewLine FBParser::get_newline()
 std::size_t FBParser::get_number_rows(FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
-    auto& block = m_block_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
 
     return block.size();
 }
@@ -187,7 +187,7 @@ std::size_t FBParser::get_number_rows(FBPart part)
 std::size_t FBParser::get_number_cols(FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
-    auto& attrs = m_attrs_array.at((int)part);
+    auto& attrs = m_attrs_array.at((std::underlying_type_t<FBPart>)part);
 
     return attrs.size();
 }
@@ -198,8 +198,8 @@ std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart pa
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
-    auto& attrs = m_attrs_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
+    auto& attrs = m_attrs_array.at((std::underlying_type_t<FBPart>)part);
 
     if(row >= block.size() || col >= attrs.size())
     {
@@ -220,8 +220,8 @@ bool FBParser::set_value(std::size_t row, std::size_t col, std::string_view valu
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
-    auto& attrs = m_attrs_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
+    auto& attrs = m_attrs_array.at((std::underlying_type_t<FBPart>)part);
 
     if(row >= block.size() || col >= attrs.size())
     {
@@ -256,7 +256,7 @@ bool FBParser::assign_rows(std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
 
     FBLine space_line;
     space_line.fill(' ');
@@ -271,7 +271,7 @@ bool FBParser::append_rows(std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
 
     FBLine space_line;
     space_line.fill(' ');
@@ -287,7 +287,7 @@ bool FBParser::insert_rows(std::size_t row, std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
 
     auto first = block.begin() + row;
 
@@ -309,7 +309,7 @@ bool FBParser::delete_rows(std::size_t row, std::size_t num, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
-    auto& block = m_block_array.at((int)part);
+    auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
     
     auto first = block.begin() + row;
     auto last = first + num;
@@ -321,7 +321,6 @@ bool FBParser::delete_rows(std::size_t row, std::size_t num, FBPart part)
 
 
     block.erase(first, last);
-
 
     return true;
 }

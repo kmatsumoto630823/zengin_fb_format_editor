@@ -20,6 +20,8 @@ enum ID_MENU
     ID_MENU_HEADER_IMPORT,
     ID_MENU_HEADER_EXPORT,
     ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD,
+    ID_MENU_DATA_SELECT_ALL, 
+    ID_MENU_DATA_CLEAR_SELECTED,    
     ID_MENU_DATA_ADD,
     ID_MENU_DATA_DELETE,
     ID_MENU_DATA_ADD_FROM_CLIPBOARD,
@@ -30,6 +32,8 @@ enum ID_MENU
     ID_MENU_DATA_SEARCH_BACKWARD,
 
     ID_MENU_HELP_ABOUT,
+    ID_MENU_HELP_MANUAL,
+    ID_MENU_HELP_README,
 };
 
 class InitialFrame final : public wxFrame
@@ -55,6 +59,8 @@ public:
     wxButton* get_button_header_import_from_clipboard();
 
     customGrid* get_grid_data();
+    wxButton* get_button_data_clear_selected();
+    wxButton* get_button_data_select_all();
     wxButton* get_button_data_add();
     wxButton* get_button_data_delete();
     wxButton* get_button_data_add_from_clipboard();
@@ -82,6 +88,8 @@ private:
     wxButton* button_header_import_from_clipboard;
 
     customGrid* grid_data;
+    wxButton* button_data_clear_selected;
+    wxButton* button_data_select_all;
     wxButton* button_data_add;
     wxButton* button_data_delete;
     wxButton* button_data_add_from_clipboard;

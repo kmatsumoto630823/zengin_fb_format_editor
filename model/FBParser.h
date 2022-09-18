@@ -9,7 +9,7 @@
 
 using FBLine = std::array<char, FB_WIDTH + 1>;
 using FBBlock = std::vector<FBLine>;
-using FBBlockArray = std::array<FBBlock, (int)FBPart::ITEM_NUM>;
+using FBBlockArray = std::array<FBBlock, (std::underlying_type_t<FBPart>)FBPart::ITEM_NUM>;
 
 class FBParser final
 {
