@@ -158,7 +158,7 @@ FBParser& FBParser::set_current_part(FBPart part)
     return *this;
 }
 
-FBPart FBParser::get_current_part()
+FBPart FBParser::get_current_part() const
 {
     return m_current_part;
 }
@@ -171,12 +171,12 @@ FBParser& FBParser::set_newline(FBNewLine newline)
     return *this;
 }
 
-FBNewLine FBParser::get_newline()
+FBNewLine FBParser::get_newline() const
 {
     return m_newline;
 }
 
-std::size_t FBParser::get_number_rows(FBPart part)
+std::size_t FBParser::get_number_rows(FBPart part) const
 {
     if(part == FBPart::CURRENT) part = m_current_part;
     auto& block = m_block_array.at((std::underlying_type_t<FBPart>)part);
@@ -184,7 +184,7 @@ std::size_t FBParser::get_number_rows(FBPart part)
     return block.size();
 }
 
-std::size_t FBParser::get_number_cols(FBPart part)
+std::size_t FBParser::get_number_cols(FBPart part) const
 {
     if(part == FBPart::CURRENT) part = m_current_part;
     auto& attrs = m_attrs_array.at((std::underlying_type_t<FBPart>)part);
@@ -194,7 +194,7 @@ std::size_t FBParser::get_number_cols(FBPart part)
 
 const char EMPTY_STRING [] = "";
 
-std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart part)
+std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart part) const
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 

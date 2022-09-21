@@ -22,16 +22,16 @@ public:
     bool from_text(const std::string& text);
 
     FBParser& set_newline(FBNewLine newline = FBNewLine::CRLF);
-    FBNewLine get_newline();
+    FBNewLine get_newline() const;
 
     FBParser& set_current_part(FBPart part = FBPart::HEADER);
-    FBPart get_current_part();
+    FBPart get_current_part() const;
 
     // For Grid Operation
-    std::size_t get_number_rows(FBPart part = FBPart::CURRENT);
-    std::size_t get_number_cols(FBPart part = FBPart::CURRENT); 
+    std::size_t get_number_rows(FBPart part = FBPart::CURRENT) const;
+    std::size_t get_number_cols(FBPart part = FBPart::CURRENT) const; 
 
-    std::string_view get_value(std::size_t row, std::size_t col, FBPart part = FBPart::CURRENT);
+    std::string_view get_value(std::size_t row, std::size_t col, FBPart part = FBPart::CURRENT) const;
     bool set_value(std::size_t row, std::size_t col, std::string_view value, FBPart part = FBPart::CURRENT);
 
     bool assign_rows(std::size_t num, FBPart part = FBPart::CURRENT);

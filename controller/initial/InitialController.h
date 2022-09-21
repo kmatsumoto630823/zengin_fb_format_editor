@@ -25,16 +25,16 @@ private:
 
     auto get_casted_frame(){return (InitialFrame*) frame;}
     
-    wxString m_preset_path;
-    wxString m_export_path;
-    wxString m_fbdata_path;
-
-    FBAttrsArray m_attrs_array;
+    //wxString m_preset_path;
+    //wxString m_export_path;
+    //wxString m_fbdata_path;
 
     std::string m_chars_kana;
     std::string m_pad_kana;
     std::string m_chars_num;
     std::string m_pad_num;
+
+    FBAttrsArray m_attrs_array;
 };
 
 #endif //INITIALCONTROLLER_H

@@ -1,9 +1,5 @@
 #include "FBAttrs.h"
 
-const char* NM = "NM";
-const char* KN = "KN";
-
-
 //SOHFURI
 const FBAttrsArray ATTRS_ARRAY_SOHFURI =
 {
@@ -203,11 +199,11 @@ FBAttrsArray make_attrs_array
             break;
     }
 
-    if(chars_kana == nullptr) chars_kana = chars_kana_default;
-    if(pad_kana   == nullptr) pad_kana   = pad_kana_default;
+    if(std::string_view(chars_kana) == "") chars_kana = chars_kana_default;
+    if(std::string_view(pad_kana)   == "") pad_kana   = pad_kana_default;
 
-    if(chars_num  == nullptr) chars_num  = chars_num_default;
-    if(pad_num    == nullptr) pad_num    = pad_num_default;
+    if(std::string_view(chars_num)  == "") chars_num  = chars_num_default;
+    if(std::string_view(pad_num)    == "") pad_num    = pad_num_default;
 
     for(auto& attrs : fb_attrs_array)
     {
