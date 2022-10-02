@@ -10,7 +10,6 @@
 class App : public wxApp
 {
     virtual bool OnInit() override;
-    
 };
 
 #endif //APP_H

@@ -4,7 +4,6 @@
 #include <wx/richtooltip.h>
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
-
 #include <wx/log.h>
 
 // trimGridCellTextEditor
@@ -135,7 +134,6 @@ customGrid::customGrid
     this->SetCellHighlightColour(this->GetSelectionBackground());
     this->DisableDragRowSize();
     this->CreateGrid(0, 0, wxGrid::wxGridSelectRows);
-    //this->EnableDragRowMove();
 
     this->Bind(wxEVT_GRID_CELL_CHANGED, [=, this](wxGridEvent& event)
     {

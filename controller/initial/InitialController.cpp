@@ -2,9 +2,9 @@
 
 #include "view/custom/myAboutDialogInfo.h"
 #include "model/FBParser.h"
+#include "model/GridOperation.h"
 
 #include <wx/clipbrd.h>
-#include <wx/progdlg.h>
 #include <wx/log.h>
 
 
@@ -12,278 +12,28 @@
 #define _do_callback_(collback) do {F()->Freeze(); (collback); F()->force_refresh(); F()->Thaw();} while(0)
 
 
-class FBGrid
-{
-public:
-    FBGrid(FBParser& fb) : m_fb(fb){};
-    ~FBGrid(){};
-
-    FBGrid& set_current_part(FBPart part)
-    {
-        m_fb.set_current_part(part);
-        return *this;
-    }
-
-    //Adapter Function (like wxGridTableBase)
-    int GetNumberRows() const { return m_fb.get_number_rows(); };
-    int GetNumberCols() const { return m_fb.get_number_cols(); };
-
-    const wxString& GetValue(int row, int col) const
-    {
-        auto value = m_fb.get_value(row, col);
-        m_wxstring_buff.assign(value.data(), value.size());
-
-        return m_wxstring_buff;
-    };
-
-    bool SetValue(int row, int col, const wxString& value)
-    {
-        m_string_buff = value;
-        return m_fb.set_value(row, col, m_string_buff);
-    };
-
-    bool AppendRows(int numRows = 1){ return m_fb.append_rows(numRows); };
-    bool InsertRows(int pos = 0, int numRows = 1){ return m_fb.insert_rows(pos, numRows); };
-    bool DeleteRows(int pos = 0, int numRows = 1){ return m_fb.delete_rows(pos, numRows); };
-
-private:
-    FBParser& m_fb;
-
-    static wxString m_wxstring_buff;
-    static std::string m_string_buff;
-};
-
-wxString FBGrid::m_wxstring_buff;
-std::string FBGrid::m_string_buff;
-
-template<typename T, typename U>
-inline void copy_grid_to_grid(T* src, U* dst)
-{
-    if constexpr (std::is_same_v<T, U>)
-    {
-        if(src == dst)
-        {
-            wxLogMessage("srt == dst");
-            return;      
-        }
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(dst->GetNumberRows() != 0)
-    {
-        dst->DeleteRows(0, dst->GetNumberRows());
-    }
-
-    dst->AppendRows(num_rows);
-
-    for(decltype(num_rows) row = 0; row < num_rows; row++)  
-    {
-        for(decltype(num_cols) col = 0; col < num_cols; col++)
-        {
-            auto&& value = src->GetValue(row, col);
-            dst->SetValue(row, col, value);
-        }
-    }
-}
-
-/*
-template<typename T, typename U>
-inline void copy_grid_to_grid(T* src, U* dst, wxProgressDialog* dlg)
-{
-    if constexpr (std::is_same_v<T, U>)
-    {
-        if(src == dst)
-        {
-            wxLogMessage("srt == dst");
-            return;      
-        }
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(dst->GetNumberRows() != 0)
-    {
-        dst->DeleteRows(0, dst->GetNumberRows());
-    }
-    
-    dst->AppendRows(num_rows);
-
-    wxString msg;
-    auto update_msg = [&msg, &dlg](auto row, auto num_rows)
-    {
-        msg.Empty();
-        msg <<  row * 100 / num_rows << "% ";
-        msg << "( " << row  << " / " << num_rows << " )";
-        dlg->SetRange(num_rows);
-        dlg->Update(row, msg);
-    };
-
-    for(decltype(num_rows) row = 0; row < num_rows; row++)  
-    {
-       
-        if(row % (num_rows / 100 + 1) == 0)
-        {
-            update_msg(row, num_rows);
-        }
-
-        for(decltype(num_cols) col = 0; col < num_cols; col++)
-        {
-            auto&& value = src->GetValue(row, col);
-            dst->SetValue(row, col, value);
-        }
-    }
-
-    update_msg(num_rows, num_rows);
-}
-*/
-
-/*
-template<typename T, typename U>
-inline void add_grid_to_grid(T* src, U* dst)
-{
-    if constexpr (std::is_same_v<T, U>)
-    {
-        if(src == dst)
-        {
-            wxLogMessage("srt == dst");
-            return;      
-        }
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-    auto offset_rows = dst->GetNumberRows();
-
-    dst->AppendRows(num_rows);
-
-    for(decltype(num_rows) row = 0; row < num_rows; row++)  
-    {
-        for(decltype(num_cols) col = 0; col < num_cols; col++)
-        {
-            auto&& value = src->GetValue(row, col);
-            dst->SetValue(row + offset_rows, col, value);
-        }
-    }
-}
-*/
-
-template<typename T, typename U, typename N>
-inline void insert_grid_to_grid(T* src, U* dst, N pos)
-{
-    static_assert(std::is_integral_v<N>, "Integral required.");
-
-    if constexpr (std::is_same_v<T, U>)
-    {
-        if(src == dst)
-        {
-            wxLogMessage("srt == dst");
-            return;      
-        }
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(pos > dst->GetNumberRows())
-    {
-        wxLogMessage("pos > dst->GetNumberRows()");
-        return;
-    }
-
-    auto offset_rows = pos;
-
-    dst->InsertRows(offset_rows, num_rows);
-
-    for(decltype(num_rows) row = 0; row < num_rows; row++)  
-    {
-        for(decltype(num_cols) col = 0; col < num_cols; col++)
-        {
-            auto&& value = src->GetValue(row, col);
-            dst->SetValue(row + offset_rows, col, value);
-        }
-    }
-}
-
 void InitialController::switch_type(FBType type)
 {
-
-    wxString status_string;
-    switch(type)
-    {
-        case FBType::SOHFURI:
-            status_string = "フォーマット；総合振込";
-            break;
-
-        case FBType::KYUYO_SHOYO:
-            status_string = "フォーマット：給与・賞与振込";
-            break;
-
-        case FBType::FURIKAE:
-            status_string = "フォーマット：預金口座振替";
-            break;
-
-        default:
-            return;
-    }
-
     m_attrs_array = make_attrs_array
     (
         type,
-        m_chars_kana.data(),
-        m_pad_kana.data(),
-        m_chars_num.data(),
-        m_pad_num.data()
+        m_chars_kana.empty() ? nullptr : m_chars_kana.data(),
+        m_pad_kana.empty()   ? nullptr : m_pad_kana.data() ,
+        m_chars_num.empty()  ? nullptr : m_chars_num.data(),
+        m_pad_num.empty()    ? nullptr : m_pad_num.data()
     );
 
-    using enum_int_t = std::underlying_type_t<FBPart>;
 
-    F()->get_grid_header() ->reset(m_attrs_array.at((enum_int_t)FBPart::HEADER ));
-    F()->get_grid_data()   ->reset(m_attrs_array.at((enum_int_t)FBPart::DATA   ));
-    F()->get_grid_trailer()->reset(m_attrs_array.at((enum_int_t)FBPart::TRAILER)); 
-    F()->get_grid_end()    ->reset(m_attrs_array.at((enum_int_t)FBPart::END    )); 
+    F()->get_grid_header() ->reset(m_attrs_array.at((FBEnumInt)FBPart::HEADER ));
+    F()->get_grid_data()   ->reset(m_attrs_array.at((FBEnumInt)FBPart::DATA   ));
+    F()->get_grid_trailer()->reset(m_attrs_array.at((FBEnumInt)FBPart::TRAILER)); 
+    F()->get_grid_end()    ->reset(m_attrs_array.at((FBEnumInt)FBPart::END    ));
 
-    F()->SetStatusText(status_string);
+    F()->get_grid_data()->DeleteRows();
+
+    F()->SetStatusText(wxString("フォーマット：") + FBTypeLabel.at((FBEnumInt)type));
     F()->force_refresh();
 }
-
-bool InitialController::is_edited_any()
-{
-
-    if(F()->get_grid_header() ->is_edited()) return true;
-    if(F()->get_grid_data()   ->is_edited()) return true;
-    if(F()->get_grid_trailer()->is_edited()) return true;
-    if(F()->get_grid_end()    ->is_edited()) return true;          
-
-    return false; 
-}
-
 
 
 void InitialController::initialize()
@@ -300,10 +50,6 @@ void InitialController::initialize()
 
     config.SetPath("/");
 
-    //m_fbdata_path = config.Read("FBDATA_PATH", wxEmptyString);
-    //m_preset_path = config.Read("PRESET_PATH", wxEmptyString);
-    //m_export_path = config.Read("EXPORT_PATH", wxEmptyString);
-
     m_chars_kana = config.Read("CHARS_KANA", wxEmptyString).ToStdString(wxCSConv("cp932"));
     m_pad_kana   = config.Read("PAD_KANA",   wxEmptyString).ToStdString(wxCSConv("cp932"));
     m_chars_num  = config.Read("CHARS_NUM",  wxEmptyString).ToStdString(wxCSConv("cp932"));
@@ -312,19 +58,20 @@ void InitialController::initialize()
     create_frame(config);
     create_binds(config);
 
-    switch_type((FBType)config.Read("FBTYPE", (long)FBType::SOHFURI));
+    auto type = (FBType)config.Read("FBTYPE", (long)FBType::SOHFURI);
+    switch_type(type);
 }
 
 void InitialController::create_frame(wxFileConfig& config)
 {
     this->frame = new InitialFrame();
 
-    this->frame->SetTitle(config.Read("APP_NAME", wxEmptyString));
+    auto title = config.Read("APP_NAME", wxEmptyString);
+    this->frame->SetTitle(title);
 
     auto w = config.Read("WINDOW_WIDTH", 1600);
     auto h = config.Read("WINDOW_HEIGHT", 900);
-    
-    F()->SetSize(wxSize(w, h));
+    F()->SetSize(w, h);
 }
 
 void InitialController::finalize()
@@ -332,28 +79,26 @@ void InitialController::finalize()
 
 }
 
-
 void InitialController::create_binds(wxFileConfig& config)
 {
 
     // NEW
     auto OnNew = [=, this]()
     {
-        if(is_edited_any())
+        if(F()->is_edited_any())
         {
             wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
         }
 
-        using enum_int_t = std::underlying_type_t<FBType>;
+        static wxString selection_labels[(FBEnumInt)FBType::ITEM_NUM];
+        for(FBEnumInt i = 0; i < (FBEnumInt)FBType::ITEM_NUM; ++i)
+        {
+            selection_labels[i] = FBTypeLabel[i];
+        }
 
-        wxString selection_strings[(enum_int_t)FBType::ITEM_NUM];
-        selection_strings[(enum_int_t)FBType::SOHFURI] = "総合振込";
-        selection_strings[(enum_int_t)FBType::KYUYO_SHOYO] = "給与・賞与振込";
-        selection_strings[(enum_int_t)FBType::FURIKAE] = "預金口座振替";
-
-        wxSingleChoiceDialog scdialog(F(), "フォーマットを選択してください", "選択", std::size(selection_strings) , selection_strings);
-        scdialog.SetSelection((enum_int_t)FBType::SOHFURI);
+        wxSingleChoiceDialog scdialog(F(), "フォーマットを選択してください", "選択", std::size(selection_labels), selection_labels);
+        scdialog.SetSelection((FBEnumInt)FBType::SOHFURI);
 
         if(scdialog.ShowModal() == wxID_CANCEL) return;
 
@@ -363,9 +108,7 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_(
-            OnNew()
-        );
+        _do_callback_( OnNew() );
 
     }, ID_MENU_NEW);
 
@@ -374,7 +117,7 @@ void InitialController::create_binds(wxFileConfig& config)
     {
         auto path = default_path;
 
-        if(is_edited_any())
+        if(F()->is_edited_any())
         {
             wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
@@ -402,23 +145,20 @@ void InitialController::create_binds(wxFileConfig& config)
         if(fb.get_number_rows(FBPart::TRAILER) != 1) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 1"); return;}
         if(fb.get_number_rows(FBPart::END)     != 1) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 1"); return;}
 
-        FBGrid fbgrid(fb);  
+        GridOperation::FBGrid fbgrid(fb);  
         //wxProgressDialog pdialog("進捗", " ", 100, F());
 
-        copy_grid_to_grid(&fbgrid.set_current_part(FBPart::HEADER)  ,F()->get_grid_header()->GetTable() );
+        GridOperation::copy(&fbgrid.set_current_part(FBPart::HEADER)  ,F()->get_grid_header()->GetTable() );
         //copy_grid_to_grid(&fbgrid.set_current_part(FBPart::DATA)    ,F()->get_grid_data()->GetTable()   , &pdialog);
-        copy_grid_to_grid(&fbgrid.set_current_part(FBPart::DATA)    ,F()->get_grid_data()->GetTable()   );
-        copy_grid_to_grid(&fbgrid.set_current_part(FBPart::TRAILER) ,F()->get_grid_trailer()->GetTable());
-        copy_grid_to_grid(&fbgrid.set_current_part(FBPart::END)     ,F()->get_grid_end()->GetTable()    );
+        GridOperation::copy(&fbgrid.set_current_part(FBPart::DATA)    ,F()->get_grid_data()->GetTable()   );
+        GridOperation::copy(&fbgrid.set_current_part(FBPart::TRAILER) ,F()->get_grid_trailer()->GetTable());
+        GridOperation::copy(&fbgrid.set_current_part(FBPart::END)     ,F()->get_grid_end()->GetTable()    );
 
     };
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnOpen("")
-        );
+        _do_callback_( OnOpen("") );
         
     }, ID_MENU_OPEN);
 
@@ -432,10 +172,7 @@ void InitialController::create_binds(wxFileConfig& config)
             return;
         };
         
-        _do_callback_
-        (
-            OnOpen(event.GetFiles()[0])
-        );
+        _do_callback_( OnOpen(event.GetFiles()[0]) );
     });
 
     // SAVEAS
@@ -477,18 +214,14 @@ void InitialController::create_binds(wxFileConfig& config)
             if(mdialog.ShowModal() == wxID_CANCEL) return;
         }
 
-        static const wxString selection_strings[] =
+        static wxString selection_labels[(FBEnumInt)FBNewLine::ITEM_NUM];
+        for(FBEnumInt i = 0; i < (FBEnumInt)FBNewLine::ITEM_NUM; ++i)
         {
-            "CRLF(デフォルト)",
-            "CR",
-            "LF",
-            "改行なし"
-        };
-
-        using enum_int_t = std::underlying_type_t<FBNewLine>;
+            selection_labels[i] = FBNewLineLabel[i];
+        }
         
-        wxSingleChoiceDialog scdialog(F(), "改行コードを選択してください", "選択", std::size(selection_strings), selection_strings);
-        scdialog.SetSelection((enum_int_t)FBNewLine::CRLF);
+        wxSingleChoiceDialog scdialog(F(), "改行コードを選択してください", "選択", std::size(selection_labels), selection_labels);
+        scdialog.SetSelection((FBEnumInt)FBNewLine::CRLF);
 
         if(scdialog.ShowModal() == wxID_CANCEL) return;
 
@@ -499,12 +232,12 @@ void InitialController::create_binds(wxFileConfig& config)
         wxFileDialog fdialog(F(), "FBデータの保存", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
-        FBGrid fbgrid(fb);
+        GridOperation::FBGrid fbgrid(fb);
 
-        copy_grid_to_grid(F()->get_grid_header()->GetTable() , &fbgrid.set_current_part(FBPart::HEADER) );
-        copy_grid_to_grid(F()->get_grid_data()->GetTable()   , &fbgrid.set_current_part(FBPart::DATA)   );
-        copy_grid_to_grid(F()->get_grid_trailer()->GetTable(), &fbgrid.set_current_part(FBPart::TRAILER));
-        copy_grid_to_grid(F()->get_grid_end()->GetTable()    , &fbgrid.set_current_part(FBPart::END)    );
+        GridOperation::copy(F()->get_grid_header()->GetTable() , &fbgrid.set_current_part(FBPart::HEADER) );
+        GridOperation::copy(F()->get_grid_data()->GetTable()   , &fbgrid.set_current_part(FBPart::DATA)   );
+        GridOperation::copy(F()->get_grid_trailer()->GetTable(), &fbgrid.set_current_part(FBPart::TRAILER));
+        GridOperation::copy(F()->get_grid_end()->GetTable()    , &fbgrid.set_current_part(FBPart::END)    );
 
         if(fb.get_number_rows(FBPart::HEADER)  != 1) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 1"); return;}
         if(fb.get_number_rows(FBPart::DATA)    <= 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    <= 0"); return;}
@@ -522,17 +255,14 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnSaveAs()
-        );
+        _do_callback_( OnSaveAs() );
 
     }, ID_MENU_SAVEAS);
 
      // EXIT
     auto OnExit = [=, this]()
     {
-        if(is_edited_any())
+        if(F()->is_edited_any())
         {
             wxMessageDialog mdialog(frame, "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
             if(mdialog.ShowModal() == wxID_CANCEL) return;
@@ -543,19 +273,13 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnExit()
-        );
+        _do_callback_( OnExit() );
 
     }, ID_MENU_EXIT);
 
     F()->Bind(wxEVT_CLOSE_WINDOW, [=, this](wxCloseEvent& event)
     {
-        _do_callback_
-        (
-            OnExit()
-        );
+        _do_callback_( OnExit() );
     });
 
     // HEADER IMPORT
@@ -569,7 +293,7 @@ void InitialController::create_binds(wxFileConfig& config)
             return;
         }
 
-        wxFileDialog fdialog(F(), "＠ヘッダ：ファイル読込", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*");
+        wxFileDialog fdialog(F(), "＠ヘッダ：読込（ファイル）", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*");
         if(fdialog.ShowModal() == wxID_CANCEL) return;
 
         FBParser fb(m_attrs_array);
@@ -582,18 +306,32 @@ void InitialController::create_binds(wxFileConfig& config)
             return;
         }
 
-        if(fb.get_number_rows(FBPart::HEADER)  != 1) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 1"); return;}
-        if(fb.get_number_rows(FBPart::DATA)    != 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    != 0"); return;}
-        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
-        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
+        if(fb.get_number_rows(FBPart::HEADER) != 1)
+        {
+            wxLogMessage("fb.get_number_rows(FBPart::HEADER) != 1");
+            wxLogMessage("ヘッダーレコードが存在しない、または複数行存在します");
+            return;
+        }
+
+        auto other_count = fb.get_number_rows(FBPart::DATA) + fb.get_number_rows(FBPart::TRAILER) + fb.get_number_rows(FBPart::END);
+        auto message = 
+            "ファイル上のレコードをヘッダレコードに読込します" +
+            wxString(
+                other_count > 0 ? 
+                wxString::Format("\r\n※ヘッダーレコード以外のレコード「%d行」が存在しますが無視されます", other_count) : 
+                ""
+            );
+        
+        wxMessageDialog mdialog(F(), message, "確認", wxOK | wxCANCEL);
+        if(mdialog.ShowModal() == wxID_CANCEL) return;
 
         const int torikumibi_col = 5; 
         auto value = grid->GetCellValue(0, torikumibi_col);
 
-        FBGrid fbgrid(fb);
+        GridOperation::FBGrid fbgrid(fb);
         fbgrid.set_current_part(FBPart::HEADER);
-
-        copy_grid_to_grid(&fbgrid , grid->GetTable());
+        
+        GridOperation::copy(&fbgrid, grid->GetTable() );
 
         grid->SetCellValue(0, torikumibi_col, value);
 
@@ -604,71 +342,13 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnHeaderImport()
-        );
+        _do_callback_( OnHeaderImport() );
 
     }, ID_MENU_HEADER_IMPORT);
 
     F()->get_button_header_import()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnHeaderImport()
-        );
-    });
-
-    // HEADER EXPORT
-    auto OnHeaderExport = [=, this]()
-    {
-        auto grid = F()->get_grid_header();
-
-        F()->save_editing_value();
-
-        FBParser fb(m_attrs_array);
-        fb.set_newline(FBNewLine::NONE);
-
-        wxFileDialog fdialog(F(), "＠ヘッダ：ファイル出力", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-        if(fdialog.ShowModal() == wxID_CANCEL) return;
-
-        FBGrid fbgrid(fb);
-        fbgrid.set_current_part(FBPart::HEADER);
-
-        copy_grid_to_grid(grid->GetTable() , &fbgrid);
-        fb.assign_rows(0, FBPart::DATA);
-        fb.assign_rows(0, FBPart::TRAILER);
-        fb.assign_rows(0, FBPart::END);
-
-        if(fb.get_number_rows(FBPart::HEADER)  != 1) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 1"); return;}
-        if(fb.get_number_rows(FBPart::DATA)    != 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    != 0"); return;}
-        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
-        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
-
-        auto path = fdialog.GetPath().ToStdString(wxCSConv("cp932"));
-        if(!fb.save_file(path))
-        {
-            wxLogMessage("fb.save_file(path) : false");
-            wxLogMessage("ファイルの保存に失敗しました");
-        }
-    
-    };
-
-    F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
-    {
-        _do_callback_
-        (
-            OnHeaderExport()
-        );
-
-    }, ID_MENU_HEADER_EXPORT);
-
-    F()->get_button_header_export()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
-    {
-        _do_callback_
-        (
-            OnHeaderExport()
-        );
+        _do_callback_( OnHeaderImport() );
     });
 
     // HEADER IMPORT FROM CLIPBOARD
@@ -695,21 +375,33 @@ void InitialController::create_binds(wxFileConfig& config)
             return;
         }       
 
-        if(fb.get_number_rows(FBPart::HEADER)  != 1) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 1"); return;}
-        if(fb.get_number_rows(FBPart::DATA)    != 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    != 0"); return;}
-        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
-        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
 
-        wxMessageDialog mdialog(F(), "クリップボードの内容をヘッダレコードに読込します", "確認", wxOK | wxCANCEL);
+        if(fb.get_number_rows(FBPart::HEADER) != 1)
+        {
+            wxLogMessage("fb.get_number_rows(FBPart::HEADER) != 1");
+            wxLogMessage("ヘッダーレコードが存在しない、または複数行存在します");
+            return;
+        }
+
+        auto other_count = fb.get_number_rows(FBPart::DATA) + fb.get_number_rows(FBPart::TRAILER) + fb.get_number_rows(FBPart::END);
+        auto message = 
+            "クリップボード上のレコードをヘッダレコードに読込します" +
+            wxString(
+                other_count > 0 ? 
+                wxString::Format("\r\n※ヘッダーレコード以外のレコード「%d行」が存在しますが無視されます", other_count) : 
+                ""
+            );
+        
+        wxMessageDialog mdialog(F(), message, "確認", wxOK | wxCANCEL);
         if(mdialog.ShowModal() == wxID_CANCEL) return;
 
         const int torikumibi_col = 5; 
         auto value = grid->GetCellValue(0, torikumibi_col);
 
-        FBGrid fbgrid(fb);
+        GridOperation::FBGrid fbgrid(fb);
         fbgrid.set_current_part(FBPart::HEADER);
         
-        copy_grid_to_grid(&fbgrid, grid->GetTable() );
+        GridOperation::copy(&fbgrid, grid->GetTable() );
 
         grid->SetCellValue(0, torikumibi_col, value);
 
@@ -721,44 +413,88 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnHeaderImportFromClipBoard()
-        );
+        _do_callback_( OnHeaderImportFromClipBoard() );
 
     }, ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD);
 
     F()->get_button_header_import_from_clipboard()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnHeaderImportFromClipBoard()
-        );
+        _do_callback_( OnHeaderImportFromClipBoard() );
+    });
+
+    // HEADER EXPORT
+    auto OnHeaderExport = [=, this]()
+    {
+        auto grid = F()->get_grid_header();
+
+        F()->save_editing_value();
+
+        FBParser fb(m_attrs_array);
+        fb.set_newline(FBNewLine::NONE);
+
+        wxFileDialog fdialog(F(), "＠ヘッダ：出力（ファイル）", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if(fdialog.ShowModal() == wxID_CANCEL) return;
+
+        GridOperation::FBGrid fbgrid(fb);
+        fbgrid.set_current_part(FBPart::HEADER);
+
+        GridOperation::copy(grid->GetTable(), &fbgrid);
+        fb.assign_rows(0, FBPart::DATA);
+        fb.assign_rows(0, FBPart::TRAILER);
+        fb.assign_rows(0, FBPart::END);
+
+        if(fb.get_number_rows(FBPart::HEADER)  != 1) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 1"); return;}
+        if(fb.get_number_rows(FBPart::DATA)    != 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    != 0"); return;}
+        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
+        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
+
+        auto path = fdialog.GetPath().ToStdString(wxCSConv("cp932"));
+        if(!fb.save_file(path))
+        {
+            wxLogMessage("fb.save_file(path) : false");
+            wxLogMessage("ファイルの保存に失敗しました");
+        }
+    
+    };
+
+    F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnHeaderExport() );
+
+    }, ID_MENU_HEADER_EXPORT);
+
+    F()->get_button_header_export()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnHeaderExport() );
     });
 
     // DATA SELECT ALL
     auto OnDataSelectAll = [=, this]()
     {
         auto grid = F()->get_grid_data();
-        grid->SelectAll();
+        auto selected = grid->GetSelectedRows();
+
+        if(selected.size() == grid->GetNumberRows())
+        {
+            grid->ClearSelection();
+        }
+        else
+        {
+            grid->SelectAll();
+        }
+
         grid->SetFocus();
     };
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSelectAll()
-        );
+        _do_callback_( OnDataSelectAll() );
 
     }, ID_MENU_DATA_SELECT_ALL);
 
     F()->get_button_data_select_all()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSelectAll()
-        );
+        _do_callback_( OnDataSelectAll() );
     });
 
     // DATA CLEAR SELECTED
@@ -770,19 +506,13 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataClearSelected()
-        );
+        _do_callback_( OnDataClearSelected() );
 
     }, ID_MENU_DATA_CLEAR_SELECTED);
 
     F()->get_button_data_clear_selected()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataClearSelected()
-        );
+        _do_callback_( OnDataClearSelected() );
     });
 
     // DATA ADD
@@ -795,19 +525,13 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataAdd()
-        );
+        _do_callback_( OnDataAdd() );
 
     }, ID_MENU_DATA_ADD);
 
     F()->get_button_data_add()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataAdd()
-        );
+        _do_callback_( OnDataAdd() );
     });
 
 
@@ -821,25 +545,33 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataDelete()
-        ); 
+        _do_callback_( OnDataDelete() ); 
 
     }, ID_MENU_DATA_DELETE);
 
     F()->get_button_data_delete()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataDelete()
-        );          
+        _do_callback_( OnDataDelete() );          
     });
 
     // DATA ADD FROM CRIPBOARD
     auto OnDataAddFromClipBoard = [=, this]()
     {
         auto grid = F()->get_grid_data();
+        auto selected = grid->GetSelectedRows();
+        auto pos = grid->GetNumberRows();
+
+        if(selected.size() > 1)
+        {
+            wxLogMessage("selected.size() > 1");
+            wxLogMessage("挿入位置が複数選択されています");
+            return;
+        }
+
+        if(selected.size() == 1)
+        {
+            pos = selected[0];
+        }
 
         if(!wxTheClipboard->IsSupported(wxDF_UNICODETEXT))
         {
@@ -866,34 +598,29 @@ void InitialController::create_binds(wxFileConfig& config)
             return;
         }
 
-        if(fb.get_number_rows(FBPart::HEADER)  != 0) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 0"); return;}
-        if(fb.get_number_rows(FBPart::DATA)    <= 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    <= 0"); return;}
-        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
-        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
-
-        auto selected = grid->GetSelectedRows();
-        auto pos = grid->GetNumberRows();
-
-        if(selected.size() > 1)
+        if(fb.get_number_rows(FBPart::DATA) <= 0)
         {
-            wxLogMessage("selected.size() > 1");
-            wxLogMessage("挿入位置が複数選択されています");
+            wxLogMessage("fb.get_number_rows(FBPart::DATA) <= 0");
+            wxLogMessage("データレコードが存在しません");
             return;
         }
 
-        if(selected.size() == 1)
-        {
-            pos = selected[0];
-        }
- 
-        auto message = wxString::Format("クリップボードの内容（%d行）をレコード【%d】の位置に挿入します", fb.get_number_rows(FBPart::DATA), pos + 1);
+        auto other_count = fb.get_number_rows(FBPart::HEADER) + fb.get_number_rows(FBPart::TRAILER) + fb.get_number_rows(FBPart::END);
+        auto message = 
+            wxString::Format("クリップボード上のレコード「%d行」を\r\nデータレコード「%d行目」の位置に挿入します", fb.get_number_rows(FBPart::DATA), pos + 1) +
+            wxString(
+                other_count > 0 ? 
+                wxString::Format("\r\n※データレコード以外のレコード「%d行」が存在しますが無視されます", other_count) : 
+                ""
+            );
+
         wxMessageDialog mdialog(F(), message, "確認", wxOK | wxCANCEL);
         if(mdialog.ShowModal() == wxID_CANCEL) return;
 
-        FBGrid fbgrid(fb);
+        GridOperation::FBGrid fbgrid(fb);
         fbgrid.set_current_part(FBPart::DATA);
 
-        insert_grid_to_grid(&fbgrid, grid->GetTable(), pos);
+        GridOperation::insert(&fbgrid, grid->GetTable(), pos);
         
         grid->ClearSelection();
 
@@ -910,19 +637,93 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataAddFromClipBoard()
-        );
+        _do_callback_( OnDataAddFromClipBoard() );
 
     }, ID_MENU_DATA_ADD_FROM_CLIPBOARD);
 
     F()->get_button_data_add_from_clipboard()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataAddFromClipBoard()
-        );
+        _do_callback_( OnDataAddFromClipBoard() );
+    });
+
+    // DATA ADD FROM FILE
+    auto OnDataAddFromFile = [=, this]()
+    {
+        auto grid = F()->get_grid_data();
+        auto selected = grid->GetSelectedRows();
+        auto pos = grid->GetNumberRows();
+
+        if(selected.size() > 1)
+        {
+            wxLogMessage("selected.size() > 1");
+            wxLogMessage("挿入位置が複数選択されています");
+            return;
+        }
+
+        if(selected.size() == 1)
+        {
+            pos = selected[0];
+        }
+
+        wxFileDialog fdialog(F(), "＠データ：読込（ファイル）", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*");
+        if(fdialog.ShowModal() == wxID_CANCEL) return;
+
+        FBParser fb(m_attrs_array);
+        auto path = fdialog.GetPath().ToStdString(wxCSConv("cp932"));
+
+        if(!fb.open_file(path))
+        {
+            wxLogMessage("fb.open_file(path) : false");
+            wxLogMessage("ファイルの読込に失敗しました");
+            return;
+        }
+
+        if(fb.get_number_rows(FBPart::DATA) <= 0)
+        {
+            wxLogMessage("fb.get_number_rows(FBPart::DATA) <= 0");
+            wxLogMessage("データレコードが存在しません");
+            return;
+        }
+
+        auto other_count = fb.get_number_rows(FBPart::HEADER) + fb.get_number_rows(FBPart::TRAILER) + fb.get_number_rows(FBPart::END);
+        auto message = 
+            wxString::Format("ファイル上のレコード「%d行」を\r\nデータレコード「%d行目」の位置に挿入します", fb.get_number_rows(FBPart::DATA), pos + 1) +
+            wxString(
+                other_count > 0 ? 
+                wxString::Format("\r\n※データレコード以外のレコード「%d行」が存在しますが無視されます", other_count) : 
+                ""
+            );
+
+        wxMessageDialog mdialog(F(), message, "確認", wxOK | wxCANCEL);
+        if(mdialog.ShowModal() == wxID_CANCEL) return;
+
+        GridOperation::FBGrid fbgrid(fb);
+        fbgrid.set_current_part(FBPart::DATA);
+
+        GridOperation::insert(&fbgrid, grid->GetTable(), pos);
+        
+        grid->ClearSelection();
+
+        auto begin = pos;
+        auto end = begin + fbgrid.GetNumberRows();
+        for(auto row = begin; row < end; ++row)
+        {
+            grid->SelectRow(row, true);
+        }
+
+        grid->GoToCell(end - 1, 0);
+        grid->SetFocus();
+    };
+
+    F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnDataAddFromFile() );
+
+    }, ID_MENU_DATA_ADD_FROM_FILE);
+
+    F()->get_button_data_add_from_file()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnDataAddFromFile() );
     });
 
     // SEARCH BOX
@@ -947,27 +748,18 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSearchForward()
-        );
+        _do_callback_( OnDataSearchForward() );
 
     }, ID_MENU_DATA_SEARCH_FORWARD);
 
     F()->get_searchctrl_data_search()->Bind(wxEVT_SEARCH, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSearchForward()
-        );
+        _do_callback_( OnDataSearchForward() );
     });    
 
     F()->get_button_data_search_forward()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSearchForward()
-        );
+        _do_callback_( OnDataSearchForward() );
     });
 
     // SEARCH BACKWARD
@@ -982,30 +774,81 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSearchBackward()
-        );
+        _do_callback_( OnDataSearchBackward() );
 
     }, ID_MENU_DATA_SEARCH_BACKWARD);
 
     F()->get_button_data_search_backward()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnDataSearchBackward()
-        );
+        _do_callback_( OnDataSearchBackward() );
+    });
+
+    // DATA EXPORT
+    auto OnDataExport = [=, this]()
+    {
+        auto grid = F()->get_grid_data();
+
+        F()->save_editing_value();
+
+        static wxString selection_labels[(FBEnumInt)FBNewLine::ITEM_NUM];
+        for(FBEnumInt i = 0; i < (FBEnumInt)FBNewLine::ITEM_NUM; ++i)
+        {
+            selection_labels[i] = FBNewLineLabel[i];
+        }
+        
+        wxSingleChoiceDialog scdialog(F(), "改行コードを選択してください", "選択", std::size(selection_labels), selection_labels);
+        scdialog.SetSelection((FBEnumInt)FBNewLine::CRLF);
+
+        if(scdialog.ShowModal() == wxID_CANCEL) return;
+
+        auto newline = scdialog.GetSelection();
+        FBParser fb(m_attrs_array);
+        fb.set_newline((FBNewLine)newline);
+
+        wxFileDialog fdialog(F(), "＠データ：出力（ファイル）", ".", wxEmptyString, "TXT files (*.txt)|*.txt|All files (*)|*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if(fdialog.ShowModal() == wxID_CANCEL) return;
+
+        GridOperation::FBGrid fbgrid(fb);
+        fbgrid.set_current_part(FBPart::DATA);
+
+        fb.assign_rows(0, FBPart::HEADER);
+        GridOperation::copy(grid->GetTable() , &fbgrid);
+        fb.assign_rows(0, FBPart::TRAILER);
+        fb.assign_rows(0, FBPart::END);
+
+        if(fb.get_number_rows(FBPart::HEADER)  != 0) {wxLogMessage("fb.get_number_rows(FBPart::HEADER)  != 0"); return;}
+        if(fb.get_number_rows(FBPart::DATA)    <= 0) {wxLogMessage("fb.get_number_rows(FBPart::DATA)    <= 0"); return;}
+        if(fb.get_number_rows(FBPart::TRAILER) != 0) {wxLogMessage("fb.get_number_rows(FBPart::TRAILER) != 0"); return;}
+        if(fb.get_number_rows(FBPart::END)     != 0) {wxLogMessage("fb.get_number_rows(FBPart::END)     != 0"); return;}
+
+        auto path = fdialog.GetPath().ToStdString(wxCSConv("cp932"));
+        if(!fb.save_file(path))
+        {
+            wxLogMessage("fb.save_file(path) : false");
+            wxLogMessage("ファイルの保存に失敗しました");
+        }
+    
+    };
+
+    F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnDataExport() );
+
+    }, ID_MENU_DATA_EXPORT);
+
+    F()->get_button_data_export()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    {
+        _do_callback_( OnDataExport() );
     });
 
     // TRAILER RECALCULATE
     auto OnTrailerRecalculate = [=, this]()
     {
-        using enum_int_t = std::underlying_type_t<FBPart>;
         
         auto grid_data = F()->get_grid_data();
-        auto attrs_data = m_attrs_array.at((enum_int_t)FBPart::DATA);
+        auto attrs_data = m_attrs_array.at((FBEnumInt)FBPart::DATA);
         auto grid_trailer = F()->get_grid_trailer();
-        auto attrs_trailer = m_attrs_array.at((enum_int_t)FBPart::TRAILER);
+        auto attrs_trailer = m_attrs_array.at((FBEnumInt)FBPart::TRAILER);
 
         if(grid_trailer->GetNumberRows() != 1)
         {
@@ -1093,48 +936,33 @@ void InitialController::create_binds(wxFileConfig& config)
 
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnTrailerRecalculate()
-        );
+        _do_callback_( OnTrailerRecalculate() );
 
     }, ID_MENU_TRAILER_RECALCULATE);
 
     F()->get_button_trailer_recalculated()->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            OnTrailerRecalculate()
-        );
+        _do_callback_( OnTrailerRecalculate() );
     });
 
     // SHOW ABOUT
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            myAboutDialogInfo().myAboutBox(F())
-        );
+        _do_callback_( myAboutDialogInfo().myAboutBox(F()) );
 
     }, ID_MENU_HELP_ABOUT);
 
     // SHOW MANUAL
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            wxExecute("notepad.exe 簡易操作マニュアル.txt")
-        );
+        _do_callback_( wxExecute("notepad.exe 簡易操作マニュアル.txt") );
 
     }, ID_MENU_HELP_MANUAL);
 
     // SHOW README
     F()->Bind(wxEVT_MENU, [=, this](wxCommandEvent& event)
     {
-        _do_callback_
-        (
-            wxExecute("notepad.exe 最初にお読みください.txt")
-        );
+        _do_callback_( wxExecute("notepad.exe 最初にお読みください.txt") );
 
     }, ID_MENU_HELP_README);
 

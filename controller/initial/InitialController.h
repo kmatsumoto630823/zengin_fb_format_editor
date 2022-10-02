@@ -18,16 +18,11 @@ public:
 
 private:
     void switch_type(FBType type);
-    bool is_edited_any();
     
     void create_frame(wxFileConfig& config);
     void create_binds(wxFileConfig& config);
 
     auto get_casted_frame(){return (InitialFrame*) frame;}
-    
-    //wxString m_preset_path;
-    //wxString m_export_path;
-    //wxString m_fbdata_path;
 
     std::string m_chars_kana;
     std::string m_pad_kana;

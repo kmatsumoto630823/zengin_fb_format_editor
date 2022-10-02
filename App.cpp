@@ -6,10 +6,9 @@ wxIMPLEMENT_APP(App);
 
 bool App::OnInit()
 {
-    Controller* ctrl = (Controller*) new InitialController();
+    auto ctrl = new InitialController();
     ctrl->initialize();
     ctrl->toggle_view();
 
     return true;
 }
-
