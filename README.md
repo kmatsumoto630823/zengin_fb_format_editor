@@ -47,7 +47,9 @@
 
 # Author
 kmatsumoto630823
+
 k.matsumoto.s630823@gmail.com
+
 何かありましたらメールかgithub上のIssues、Pull requestsにでも
 
 # License
