@@ -43,10 +43,12 @@
 下記の環境でビルド
 - WxWidgets-3.2.1
 - Windows 10
-- gcc/MinGW 12.1.0/10.0.0
+- gcc/MinGW 12.2.0/10.0.0
 
 # Author
 kmatsumoto630823
+k.matsumoto.s630823@gmail.com
+何かありましたらメールかgithub上のIssues、Pull requestsにでも
 
 # License
 MIT License
