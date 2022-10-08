@@ -188,11 +188,11 @@ void CustomGrid::reset(const FBAttrs& attrs)
     m_attrs = attrs;
 
     if(auto h = GetNumberRows(); h > 0) DeleteRows(0, h);
-    if(auto w = GetNumberRows(); w > 0) DeleteCols(0, w);
+    if(auto w = GetNumberCols(); w > 0) DeleteCols(0, w);
     
     if(GetNumberRows() != 0 || GetNumberCols() != 0)
     {
-        wxLogMessage("GetNumberRows() != GetNumberRows()");
+        wxLogMessage("GetNumberRows() != 0 || GetNumberCols() != 0");
         return;
     }
 
