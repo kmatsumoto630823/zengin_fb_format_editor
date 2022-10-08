@@ -4,17 +4,13 @@
 #include <algorithm>
 #include <wx/log.h>
 
-FBParser::FBParser(const FBAttrsArray& attrs_array)
-: m_attrs_array(attrs_array)
+FBParser::FBParser(const FBAttrsArray& attrs_array) : m_attrs_array(attrs_array)
 {
     set_current_part();
     set_newline();
 }
 
-FBParser::~FBParser()
-{
-
-}
+FBParser::~FBParser(){}
 
 bool FBParser::open_file(const std::string& path)
 {
@@ -62,7 +58,6 @@ bool FBParser::save_file(const std::string& path)
         fb_ofs << std::string_view(line.data()) << FB_NEWLINE_CODE[(FBEnumInt)m_newline];
     }
 
-
     return true;
 };
 
@@ -72,7 +67,7 @@ bool FBParser::from_text(const std::string& text)
     fb_str.erase(std::remove(fb_str.begin(), fb_str.end(), '\r'), fb_str.end());
     fb_str.erase(std::remove(fb_str.begin(), fb_str.end(), '\n'), fb_str.end());
     fb_str.erase(std::remove(fb_str.begin(), fb_str.end(), '\t'), fb_str.end());
-    fb_str.erase(std::remove(fb_str.begin(), fb_str.end(), ','), fb_str.end());
+    fb_str.erase(std::remove(fb_str.begin(), fb_str.end(), ',' ), fb_str.end());
 
     if(fb_str.size() % FB_WIDTH != 0)
     {
@@ -153,7 +148,7 @@ bool FBParser::from_text(const std::string& text)
 
 FBParser& FBParser::set_current_part(FBPart part)
 {
-    if(part == FBPart::CURRENT) part = m_current_part;
+    if(part == FBPart::CURRENT)part = m_current_part;
     m_current_part = part;
 
     return *this;
@@ -195,7 +190,7 @@ std::size_t FBParser::get_number_cols(FBPart part) const
 
 const char EMPTY_STRING [] = "";
 
-std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart part) const
+std::string_view FBParser::get_value(std::size_t row, std::size_t col, FBPart part)
 {
     if(part == FBPart::CURRENT) part = m_current_part;
 
@@ -316,7 +311,8 @@ bool FBParser::delete_rows(std::size_t row, std::size_t num, FBPart part)
     auto first = block.begin() + row;
     auto last = first + num;
 
-    if(last > block.end()){
+    if(last > block.end())
+    {
         wxLogMessage("last > block.end()");
         return false;
     }

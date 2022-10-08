@@ -1,12 +1,11 @@
-#ifndef FBATTRS_H
-#define FBATTRS_H
+#ifndef FB_ATTRS_H
+#define FB_ATTRS_H
 
 #include<vector>
 #include<array>
 #include<string>
 
 using FBEnumInt = int;
-
 
 enum class FBPart : FBEnumInt
 {
@@ -89,8 +88,6 @@ struct FBAttr
 using FBAttrs = std::vector<FBAttr>;
 using FBAttrsArray = std::array<FBAttrs, (FBEnumInt)FBPart::ITEM_NUM>;
 
-bool operator==(const FBAttr& lhs, const FBAttr& rhs);
-
 FBAttrsArray make_attrs_array
 (
     FBType type = FBType::SOHFURI,
@@ -100,5 +97,4 @@ FBAttrsArray make_attrs_array
     const char* pad_num    = ""
 );
 
-
-#endif //FBATTRS_H
+#endif //FB_ATTRS_H

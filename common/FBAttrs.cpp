@@ -1,7 +1,7 @@
 #include "FBAttrs.h"
 
-const char * _KN_ = "#KN";
-const char * _NM_ = "#NM";
+const char * _KN_ = "#KN#";
+const char * _NM_ = "#NM#";
 
 
 const FBAttrsArray ATTRS_ARRAY_SOHFURI =
@@ -166,22 +166,6 @@ const FBAttrsArray ATTRS_ARRAY_FURIKAE =
     }//END
 };
 
-bool operator==(const FBAttr& lhs, const FBAttr& rhs)
-{
-        if(lhs.order  != rhs.order)  return false;
-        if(lhs.offset != rhs.offset) return false;
-        if(lhs.length != rhs.length) return false;
-
-        if(lhs.char_includes != rhs.char_includes) return false;
-        if(lhs.pad_info      != rhs.pad_info)      return false;
-        if(lhs.initial_value != rhs.initial_value) return false;
-        if(lhs.label         != rhs.initial_value) return false;
-        if(lhs.description   != rhs.description)   return false;
-
-        return true;
-}
-
-
 constexpr auto chars_kana_default  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜ¦İŞß";
 constexpr auto pad_kana_default    = "R ";
 
@@ -222,8 +206,6 @@ FBAttrsArray make_attrs_array
 
     if(chars_num  == nullptr) chars_num  = chars_num_default;
     if(pad_num    == nullptr) pad_num    = pad_num_default;
-
-    using namespace std::string_view_literals;
 
     for(auto& attrs : attrs_array)
     {

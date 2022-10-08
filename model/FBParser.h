@@ -1,5 +1,5 @@
-#ifndef FBDATAPARSER_H
-#define FBDATAPARSER_H
+#ifndef FB_PARSER_H
+#define FB_PARSER_H
 
 #include "common/FBAttrs.h"
 
@@ -31,7 +31,7 @@ public:
     std::size_t get_number_rows(FBPart part = FBPart::CURRENT) const;
     std::size_t get_number_cols(FBPart part = FBPart::CURRENT) const; 
 
-    std::string_view get_value(std::size_t row, std::size_t col, FBPart part = FBPart::CURRENT) const;
+    std::string_view get_value(std::size_t row, std::size_t col, FBPart part = FBPart::CURRENT);
     bool set_value(std::size_t row, std::size_t col, std::string_view value, FBPart part = FBPart::CURRENT);
 
     bool assign_rows(std::size_t num, FBPart part = FBPart::CURRENT);
@@ -47,4 +47,4 @@ private:
     const FBAttrsArray& m_attrs_array;
 };
 
-#endif //FBDATAPARSER_H
+#endif //FB_PARSER_H

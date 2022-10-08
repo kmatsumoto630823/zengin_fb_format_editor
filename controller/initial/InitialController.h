@@ -1,5 +1,5 @@
-#ifndef INITIALCONTROLLER_H
-#define INITIALCONTROLLER_H
+#ifndef INITIAL_CONTROLLER_H
+#define INITIAL_CONTROLLER_H
 
 #include "common/FBAttrs.h"
 #include "../Controller.h"
@@ -32,4 +32,4 @@ private:
     FBAttrsArray m_attrs_array;
 };
 
-#endif //INITIALCONTROLLER_H
+#endif //INITIAL_CONTROLLER_H
