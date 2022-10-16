@@ -9,313 +9,253 @@
 
 #include <concepts>
 
-namespace GridOps { 
+namespace GridOps {
+
+using siz_t = long long;
+using val_t = wxString;
 
 template<typename T>
-concept GridOperatable = requires (T* grid)
-{
-    typename T::val_t;
-    typename T::siz_t;
+class Adapter{};
 
-    { grid->GetNumberRows() } -> std::convertible_to<int>;
-    { grid->GetNumberCols() } -> std::convertible_to<int>;
+template<>
+class Adapter<wxGridTableBase>
+{
+public:
+    Adapter(wxGrid* wxgrid){ m_wxgridTable = wxgrid->GetTable(); };
+    Adapter(wxGrid& wxgrid){ m_wxgridTable = wxgrid.GetTable(); };
+
+    Adapter(wxGridTableBase* wxgridTable){ m_wxgridTable = wxgridTable; };
+    Adapter(wxGridTableBase& wxgridTable){ m_wxgridTable = &wxgridTable; };
+
+    ~Adapter(){};
+
+    //Adapter Function
+    siz_t GetNumberRows() const { return m_wxgridTable->GetNumberRows(); };
+    siz_t GetNumberCols() const { return m_wxgridTable->GetNumberCols(); };   
+
+    const val_t& GetValue(siz_t row, siz_t col)
+    {
+        m_wxstrBuff = m_wxgridTable->GetValue(row, col);
+        return m_wxstrBuff;
+    };
+
+    void SetValue(siz_t row, siz_t col, const val_t& value)
+    { 
+        m_wxstrBuff = value;
+        m_wxgridTable->SetValue(row, col, m_wxstrBuff);
+    };
+
+    bool AppendRows(siz_t numRows = 1){ return m_wxgridTable->AppendRows(numRows); };
+    bool InsertRows(siz_t pos = 0, siz_t numRows = 1){ return m_wxgridTable->InsertRows(pos, numRows); };
+    bool DeleteRows(siz_t pos = 0, siz_t numRows = 1){ return m_wxgridTable->DeleteRows(pos, numRows); };
+
+private:
+    wxGridTableBase* m_wxgridTable;
+    wxString m_wxstrBuff;
+};
+
+template<>
+class Adapter<FBGrid>
+{
+public:
+    Adapter(FBGrid* fbgrid){ m_fbgrid = fbgrid; };
+    Adapter(FBGrid& fbgrid){ m_fbgrid = &fbgrid; };
+    ~Adapter(){};
+
+    //Adapter Function
+    siz_t GetNumberRows() const { return m_fbgrid->get_number_rows(); };
+    siz_t GetNumberCols() const { return m_fbgrid->get_number_cols(); };
+
+    const val_t& GetValue(siz_t row, siz_t col)
+    {
+        m_wxstrBuff = m_fbgrid->get_value(row, col);
+        return m_wxstrBuff;
+    };
+
+    void SetValue(siz_t row, siz_t col, const val_t& value)
+    {
+        m_stdstrBuff = value;
+        m_fbgrid->set_value(row, col, m_stdstrBuff);
+    };
+
+    bool AppendRows(siz_t numRows = 1){ return m_fbgrid->append_rows(numRows); };
+    bool InsertRows(siz_t pos = 0, siz_t numRows = 1){ return m_fbgrid->insert_rows(pos, numRows); };
+    bool DeleteRows(siz_t pos = 0, siz_t numRows = 1){ return m_fbgrid->delete_rows(pos, numRows); };
+
+private:
+    FBGrid* m_fbgrid;
+
+    wxString m_wxstrBuff;
+    std::string m_stdstrBuff;
+};
+
+template<typename T>
+using remove_ptrcvref_t = std::remove_pointer_t<std::remove_cvref_t<T>>;
+
+template<typename T>
+Adapter(T) -> Adapter<remove_ptrcvref_t<T>>;
+
+template<typename T>
+requires std::derived_from<remove_ptrcvref_t<T>, wxGridTableBase>
+Adapter(T) -> Adapter<wxGridTableBase>;
+
+template<typename T>
+requires std::derived_from<remove_ptrcvref_t<T>, wxGrid>
+Adapter(T) -> Adapter<wxGridTableBase>;
+
+template<typename T>
+requires std::derived_from<remove_ptrcvref_t<T>, FBGrid>
+Adapter(T) -> Adapter<FBGrid>;
+
+
+template<typename T>
+concept GridOperatable = requires (T x, siz_t s, val_t v)
+{
+    { x.GetNumberRows() } -> std::same_as<siz_t>;
+    { x.GetNumberCols() } -> std::same_as<siz_t>;
     
-    { grid->SetValue(0, 0, grid->GetValue(0, 0)) };
+    { x.GetValue(s, s) } -> std::same_as<const val_t&>;
+    { x.SetValue(s, s, v) };
  
-    { grid->AppendRows(0) }    -> std::same_as<bool>;
-    { grid->InsertRows(0, 0) } -> std::same_as<bool>;
-    { grid->DeleteRows(0, 0) } -> std::same_as<bool>;
-
+    { x.AppendRows(s) }    -> std::same_as<bool>;
+    { x.InsertRows(s, s) } -> std::same_as<bool>;
+    { x.DeleteRows(s, s) } -> std::same_as<bool>;
 };
 
 template<typename T, typename U>
-concept ValueConvertible = requires (T* grid1, U* grid2)
+requires GridOperatable<T> && GridOperatable<U>
+inline void copy(T& src, U& dst)
 {
-    { grid1->SetValue(0, 0, grid2->GetValue(0, 0)) };
-    { grid2->SetValue(0, 0, grid1->GetValue(0, 0)) };
-};
+    if((void*)&src == (void*)&dst)
+    {
+        wxLogMessage("(void*)&src == (void*)&dst");
+        return;      
+    }
+
+    if(src.GetNumberCols() != dst.GetNumberCols())
+    {
+        wxLogMessage("src.GetNumberCols() != dst.GetNumberCols()");
+        return;
+    }
+
+    auto numRows = src.GetNumberRows();
+    auto numCols = src.GetNumberCols();
+
+    if(dst.GetNumberRows() != 0)
+    {
+        dst.DeleteRows(0, dst.GetNumberRows());
+    }
+
+    dst.AppendRows(numRows);
+
+    for(decltype(numRows) row = 0; row < numRows; ++row)  
+    {
+        for(decltype(numCols) col = 0; col < numCols; ++col)
+        {
+            auto&& value = src.GetValue(row, col);
+            dst.SetValue(row, col, value);
+        }
+    }
+}
+
+template<typename T, typename U, typename V>
+requires GridOperatable<T> && GridOperatable<U>
+inline void copy(T& src, U& dst, V* dlg)
+{
+    if((void*)&src == (void*)&dst)
+    {
+        wxLogMessage("(void*)&src == (void*)&dst");
+        return;      
+    }
+
+    if(src.GetNumberCols() != dst.GetNumberCols())
+    {
+        wxLogMessage("src.GetNumberCols() != dst.GetNumberCols()");
+        return;
+    }
+
+    auto numRows = src.GetNumberRows();
+    auto numCols = src.GetNumberCols();
+
+    if(dst.GetNumberRows() != 0)
+    {
+        dst.DeleteRows(0, dst.GetNumberRows());
+    }
+    
+    dst.AppendRows(numRows);
+
+    wxString msg;
+    auto update_msg = [&msg, &dlg](auto row, auto numRows)
+    {
+        msg.Empty();
+        msg <<  row * 100 / numRows << "% ";
+        msg << "( " << row  << " / " << numRows << " )";
+        dlg->SetRange(numRows);
+        dlg->Update(row, msg);
+    };
+
+    for(decltype(numRows) row = 0; row < numRows; ++row)  
+    {
+        if(row % (numRows / 100 + 1) == 0)
+        {
+            update_msg(row, numRows);
+        }
+
+        for(decltype(numCols) col = 0; col < numCols; ++col)
+        {
+            auto&& value = src.GetValue(row, col);
+            dst.SetValue(row, col, value);
+        }
+    }
+
+    update_msg(numRows, numRows);
+}
 
 template<typename T, typename U>
-requires GridOperatable<T> && GridOperatable<U> && ValueConvertible<T, U>
-void copy(T* src, U* dst)
+requires GridOperatable<T> && GridOperatable<U>
+inline void insert(T& src, U& dst, siz_t pos)
 {
-    using val_t = T::val_t;
-    using siz_t = T::siz_t;
-
-    if((void*)src == (void*)dst)
+    if((void*)&src == (void*)&dst)
     {
-        wxLogMessage("(void*)src == (void*)dst");
+        wxLogMessage("(void*)&src == (void*)&dst");
         return;      
     }
 
-    if(src->GetNumberCols() != dst->GetNumberCols())
+    if(src.GetNumberCols() != dst.GetNumberCols())
     {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
+        wxLogMessage("src.GetNumberCols() != dst.GetNumberCols()");
         return;
     }
 
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
+    auto numRows = src.GetNumberRows();
+    auto numCols = src.GetNumberCols();
 
-    if(dst->GetNumberRows() != 0)
+    if(pos > dst.GetNumberRows())
     {
-        dst->DeleteRows(0, dst->GetNumberRows());
+        wxLogMessage("pos > dst.GetNumberRows()");
+        return;
     }
 
-    dst->AppendRows(num_rows);
+    dst.InsertRows(pos, numRows);
 
-    static val_t value_buff;
-    for(siz_t row = 0; row < num_rows; ++row)  
+    for(decltype(numRows) row = 0; row < numRows; ++row)  
     {
-        for(siz_t col = 0; col < num_cols; ++col)
+        for(decltype(numCols) col = 0; col < numCols; ++col)
         {
-            value_buff = src->GetValue(row, col);
-            dst->SetValue(row, col, value_buff);
-        }
-    }
-}
-
-template<typename T, typename U, typename P>
-requires GridOperatable<T> && GridOperatable<U> && ValueConvertible<T, U>
-void copy_if(T* src, U* dst, P pred)
-{
-    using val_t = T::val_t;
-    using siz_t = T::siz_t;
-
-    if((void*)src == (void*)dst)
-    {
-        wxLogMessage("(void*)src == (void*)dst");
-        return;      
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(dst->GetNumberRows() != 0)
-    {
-        dst->DeleteRows(0, dst->GetNumberRows());
-    }
-
-    dst->AppendRows(num_rows);
-
-    static val_t value_buff;
-    size_t num_copy = 0;
-    for(siz_t row = 0; row < num_rows; ++row)  
-    {
-        for(siz_t col = 0; col < num_cols; ++col)
-        {
-            value_buff = src->GetValue(row, col);
-            dst->SetValue(row, col, value_buff);
-        }
-    }    
-}
-
-template<typename T, typename U, typename I = U::siz_t>
-requires GridOperatable<T> && GridOperatable<U> && ValueConvertible<T, U> && std::integral<I>
-void insert(T* src, U* dst, I pos)
-{
-    using val_t = T::val_t;
-    using siz_t = T::siz_t;
-
-    if((void*)src == (void*)dst)
-    {
-        wxLogMessage("(void*)src == (void*)dst");
-        return;      
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(pos > dst->GetNumberRows())
-    {
-        wxLogMessage("pos > dst->GetNumberRows()");
-        return;
-    }
-
-    dst->InsertRows(pos, num_rows);
-
-    static val_t value_buff;
-    for(siz_t row = 0; row < num_rows; ++row)  
-    {
-        for(siz_t col = 0; col < num_cols; ++col)
-        {
-            value_buff = src->GetValue(row, col);
-            dst->SetValue(row + pos, col, value_buff);
+            auto&& value = src.GetValue(row, col);
+            dst.SetValue(row + pos, col, value);
         }
     }
 
 }
 
 template<typename T, typename U>
-void append(T* src, U* dst)
+inline void append(T& src, U& dst)
 {
     insert(src, dst, dst->GetNumberRows());
 }
 
 
-template<typename T>
-class Adapter
-{
-    //DUMMY PRIMARY TEMPLATE
-};
-
-template<typename T>
-requires std::derived_from<T, wxGrid>
-class Adapter<T>
-{
-public:
-    using val_t = wxString;
-    using siz_t = int;
-
-    Adapter(T* grid){ m_wxgrid_table = grid->GetTable(); };
-    ~Adapter(){};
-
-    //Adapter Function
-    int GetNumberRows() const { return m_wxgrid_table->GetNumberRows(); };
-    int GetNumberCols() const { return m_wxgrid_table->GetNumberCols(); };   
-
-    const wxString& GetValue(int row, int col)
-    {
-        m_wxstr_buff = m_wxgrid_table->GetValue(row, col);
-        return m_wxstr_buff;
-    };
-
-    void SetValue(int row, int col, const wxString& value)
-    { 
-        m_wxgrid_table->SetValue(row, col, value);
-    };
-
-    bool AppendRows(int numRows = 1){ return m_wxgrid_table->AppendRows(numRows); };
-    bool InsertRows(int pos = 0, int numRows = 1){ return m_wxgrid_table->InsertRows(pos, numRows); };
-    bool DeleteRows(int pos = 0, int numRows = 1){ return m_wxgrid_table->DeleteRows(pos, numRows); };
-
-private:
-    wxGridTableBase* m_wxgrid_table;
-    wxString m_wxstr_buff;
-
-};
-
-
-template<>
-class Adapter<FBParser>
-{
-public:
-    using val_t = wxString;
-    using siz_t = int;
-
-    Adapter(FBParser* fbgrid){ m_fbgrid = fbgrid; };
-    ~Adapter(){};
-
-    void set_current_part(FBPart part)
-    {
-        m_fbgrid->set_current_part(part);
-    }
-
-    Adapter& operator[](FBPart part)
-    {
-        set_current_part(part);
-        return *this;
-    }
-
-    //Adapter Function
-    int GetNumberRows() const { return m_fbgrid->get_number_rows(); };
-    int GetNumberCols() const { return m_fbgrid->get_number_cols(); };
-
-    const wxString& GetValue(int row, int col)
-    {
-        auto value = m_fbgrid->get_value(row, col);
-        m_wxstr_buff.assign(value.data(), value.size());
-        return m_wxstr_buff;
-    };
-
-    void SetValue(int row, int col, const wxString& value)
-    {
-        m_stdstr_buff = value;
-        m_fbgrid->set_value(row, col, m_stdstr_buff);
-    };
-
-    bool AppendRows(int numRows = 1){ return m_fbgrid->append_rows(numRows); };
-    bool InsertRows(int pos = 0, int numRows = 1){ return m_fbgrid->insert_rows(pos, numRows); };
-    bool DeleteRows(int pos = 0, int numRows = 1){ return m_fbgrid->delete_rows(pos, numRows); };
-
-private:
-    FBParser* m_fbgrid;
-
-    wxString m_wxstr_buff;
-    std::string m_stdstr_buff;
-};
-
-
-template<typename T>
-Adapter(T*) -> Adapter<T>;
-
 } // namespace GridOps
 
 #endif // GRID_OPS_H
-
-/*
-template<typename T, typename U>
-inline void copy(T* src, U* dst, wxProgressDialog* dlg)
-{
-    if((void*)src == (void*)dst)
-    {
-        wxLogMessage("srt == dst");
-        return;      
-    }
-
-    if(src->GetNumberCols() != dst->GetNumberCols())
-    {
-        wxLogMessage("src->GetNumberCols() != dst->GetNumberCols()");
-        return;
-    }
-
-    auto num_rows = src->GetNumberRows();
-    auto num_cols = src->GetNumberCols();
-
-    if(dst->GetNumberRows() != 0)
-    {
-        dst->DeleteRows(0, dst->GetNumberRows());
-    }
-    
-    dst->AppendRows(num_rows);
-
-    wxString msg;
-    auto update_msg = [&msg, &dlg](auto row, auto num_rows)
-    {
-        msg.Empty();
-        msg <<  row * 100 / num_rows << "% ";
-        msg << "( " << row  << " / " << num_rows << " )";
-        dlg->SetRange(num_rows);
-        dlg->Update(row, msg);
-    };
-
-    for(decltype(num_rows) row = 0; row < num_rows; row++)  
-    {
-       
-        if(row % (num_rows / 100 + 1) == 0)
-        {
-            update_msg(row, num_rows);
-        }
-
-        for(decltype(num_cols) col = 0; col < num_cols; col++)
-        {
-            auto&& value = src->GetValue(row, col);
-            dst->SetValue(row, col, value);
-        }
-    }
-
-    update_msg(num_rows, num_rows);
-}
-*/

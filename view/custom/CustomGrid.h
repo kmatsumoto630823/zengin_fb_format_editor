@@ -2,6 +2,12 @@
 #define CUSTOM_GRID_H
 
 #include "common/FBAttrs.h"
+
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
 #include <wx/grid.h>
 
 class trimGridCellTextEditor : public wxGridCellTextEditor

@@ -1,14 +1,9 @@
 #include "GridDialog.h"
-
-#include <wx/button.h>
 #include <wx/srchctrl.h>
-#include <wx/stattext.h>
-#include <wx/sizer.h>
 
 GridDialog::GridDialog
 (
     const FBAttrs& attrs,
-    const wxString& message,
     wxWindow* parent,
     wxWindowID id,
     const wxString& title,
@@ -34,8 +29,7 @@ GridDialog::GridDialog
         sizer_top->AddSpacer(10);
 
         auto sizer_head = new wxBoxSizer(wxHORIZONTAL);
-        sizer_top->Add(sizer_head, 0, wxALIGN_LEFT);
-            sizer_head->Add(new wxStaticText(this, wxID_ANY, message), 0, wxALIGN_BOTTOM | wxRIGHT, 50);
+        sizer_top->Add(sizer_head, 0, wxALIGN_CENTER);
             sizer_head->Add(searchctrl, 0, wxALIGN_BOTTOM);
             sizer_head->Add(button_search_forward, 0, wxALIGN_BOTTOM);
             sizer_head->Add(button_search_backward, 0, wxALIGN_BOTTOM);
@@ -52,7 +46,7 @@ GridDialog::GridDialog
 
         sizer_top->AddSpacer(10);
 
-    searchctrl->Bind(wxEVT_SEARCH, [=, this](wxCommandEvent& event)
+    searchctrl->Bind(wxEVT_SEARCH, [=, this]([[maybe_unused]]wxCommandEvent& event)
     {
         auto search_value = searchctrl->GetValue();
         auto is_forward = true;
@@ -60,7 +54,7 @@ GridDialog::GridDialog
         m_grid->search_next_value(search_value, is_forward);
     });
 
-    button_search_forward->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    button_search_forward->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
     {
         auto search_value = searchctrl->GetValue();
         auto is_forward = true;
@@ -68,7 +62,7 @@ GridDialog::GridDialog
         m_grid->search_next_value(search_value, is_forward);
     });
 
-    button_search_backward->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    button_search_backward->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
     {
         auto search_value = searchctrl->GetValue();
         auto is_forward = false;
@@ -77,13 +71,13 @@ GridDialog::GridDialog
     });
 
 
-    button_select_all->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    button_select_all->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
     {
         m_grid->SelectAll();
         m_grid->SetFocus();
     });
 
-    button_clear_selected->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& event)
+    button_clear_selected->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
     {
         m_grid->ClearSelection();
         m_grid->SetFocus();

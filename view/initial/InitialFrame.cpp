@@ -1,16 +1,8 @@
 #include "InitialFrame.h"
-
-#include <wx/menu.h>
-#include <wx/stattext.h>
-#include <wx/sizer.h>
 #include <wx/artprov.h>
-#include <wx/log.h>
-
-
 
 InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 {
-
     // MENU FILE
     menu_file = new wxMenu;
     menu_file->Append(ID_MENU_NEW, "新規（フォーマット選択）\tCtrl+N")->SetBitmap(wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU));
@@ -36,11 +28,11 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     menu_edit->Append(ID_MENU_DATA_EXPORT, "＠データ：出力（ファイル）")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_ADD_FROM_CLIPBOARD, "＠データ：読込（クリップボード）\tCtrl+Insert")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
     menu_edit->AppendSeparator();
-    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE,"＠トレーラー：再計算\tF5")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
+    menu_edit->Append(ID_MENU_TRAILER_RECALCULATE, "＠トレーラー：再計算\tF5")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
 
     // MENU SEARCH
     menu_search = new wxMenu;
-    menu_search->Append(ID_MENU_DATA_SEARCH_BOX,"＠データ：検索ボックス\tCtrl+F")->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU));
+    menu_search->Append(ID_MENU_DATA_SEARCH_BOX, "＠データ：検索ボックス\tCtrl+F")->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU));
     menu_search->AppendSeparator();
     menu_search->Append(ID_MENU_DATA_SEARCH_FORWARD, "＠データ：次検索\tF3")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU));
     menu_search->Append(ID_MENU_DATA_SEARCH_BACKWARD, "＠データ：前検索\tShift+F3")->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU));;
@@ -64,16 +56,12 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 
     //GRID_HEADER
     grid_header = new CustomGrid(panel_top, wxID_ANY);
-    grids[(FBEnumInt)FBPart::HEADER] = grid_header;
-
     button_header_import = new wxButton(panel_top, wxID_ANY, "読込"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
     button_header_export = new wxButton(panel_top, wxID_ANY, "出力"); button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
     button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "読込（クリップボード）", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
 
     //GRID_DATA
     grid_data = new CustomGrid(panel_top, wxID_ANY);
-    grids[(FBEnumInt)FBPart::DATA] = grid_data;
-
     button_data_select_all = new wxButton(panel_top, wxID_ANY, "全選択");
     button_data_clear_selected = new wxButton(panel_top, wxID_ANY, "全解除");
     button_data_move_up = new wxButton(panel_top, wxID_ANY, "上に", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
@@ -89,13 +77,10 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 
     //GRID_TRAILER
     grid_trailer = new CustomGrid(panel_top, wxID_ANY);
-    grids[(FBEnumInt)FBPart::TRAILER] = grid_trailer;
-    
     button_trailer_recalculated = new wxButton(panel_top, wxID_ANY, "再計算"); button_trailer_recalculated->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_TOOLBAR));
 
     //GRID_END
     grid_end = new CustomGrid(panel_top, wxID_ANY);
-    grids[(FBEnumInt)FBPart::END] = grid_end;
 
     //SIZER
     auto sizer_top = new wxBoxSizer(wxVERTICAL);
@@ -149,10 +134,11 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 
 void InitialFrame::force_refresh()
 {
-        panel_top->GetSizer()->Layout();
-        SetSize(GetSize());
-        Refresh();
+    panel_top->GetSizer()->Layout();
+    SetSize(GetSize());
+    Refresh();
 }
+
 
 void InitialFrame::save_editing_value()
 {

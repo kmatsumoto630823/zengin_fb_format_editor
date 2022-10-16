@@ -7,9 +7,35 @@
 #include<vector>
 #include<array>
 
-using FBLine = std::array<char, FB_WIDTH + 1>;
-using FBBlock = std::vector<FBLine>;
-using FBBlockArray = std::array<FBBlock, (FBEnumInt)FBPart::ITEM_NUM>;
+using FBLine = std::array<char, FB_LINE_WIDTH + 1>;
+using FBGridBase = std::vector<FBLine>;
+
+class FBGrid : public FBGridBase
+{
+public:
+    FBGrid(const FBAttrs& attrs);
+    ~FBGrid();
+
+    bool chk_and_add(const FBLine& line);
+
+    // For Grid Operation
+    std::size_t get_number_rows() const;
+    std::size_t get_number_cols() const; 
+
+    const std::string& get_value(std::size_t row, std::size_t col);
+    bool set_value(std::size_t row, std::size_t col, const std::string& value);
+
+    bool assign_rows(std::size_t num_rows);
+    bool append_rows(std::size_t num_rows);
+    bool insert_rows(std::size_t row, std::size_t num_rows);
+    bool delete_rows(std::size_t row, std::size_t num_rows);
+    
+private:
+    FBGridBase& m_data;
+    const FBAttrs& m_attrs;
+
+    std::string m_str_buff;
+};
 
 class FBParser
 {
@@ -19,32 +45,19 @@ public:
 
     bool open_file(const std::string& path); 
     bool save_file(const std::string& path);
-    bool from_text(const std::string& text);
+    bool from_text(const std::string& raw_text);
 
-    FBParser& set_newline(FBNewLine newline = FBNewLine::CRLF);
+    FBGrid& operator[](FBPart part){ return m_grid_array.at((FBEnumInt)part); };
+    FBGrid& operator[](FBEnumInt part){ return m_grid_array.at(part); };
+
+    FBParser& set_newline(FBNewLine newline);
     FBNewLine get_newline() const;
 
-    FBParser& set_current_part(FBPart part = FBPart::HEADER);
-    FBPart get_current_part() const;
-
-    // For Grid Operation
-    std::size_t get_number_rows(FBPart part = FBPart::CURRENT) const;
-    std::size_t get_number_cols(FBPart part = FBPart::CURRENT) const; 
-
-    std::string_view get_value(std::size_t row, std::size_t col, FBPart part = FBPart::CURRENT);
-    bool set_value(std::size_t row, std::size_t col, std::string_view value, FBPart part = FBPart::CURRENT);
-
-    bool assign_rows(std::size_t num, FBPart part = FBPart::CURRENT);
-    bool append_rows(std::size_t num = 1, FBPart part = FBPart::CURRENT);
-    bool insert_rows(std::size_t row, std::size_t num = 1, FBPart part = FBPart::CURRENT);
-    bool delete_rows(std::size_t row, std::size_t num = 1, FBPart part = FBPart::CURRENT);
-
 private:
+    using FBGridArray = std::array<FBGrid, (FBEnumInt)FBPart::ITEM_NUM>;
+    FBGridArray m_grid_array;
+    
     FBNewLine m_newline;
-    FBPart m_current_part;
-
-    FBBlockArray m_block_array;
-    const FBAttrsArray& m_attrs_array;
 };
 
 #endif //FB_PARSER_H

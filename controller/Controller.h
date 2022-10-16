@@ -1,8 +1,10 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
 #include <wx/wx.h>
-
+#endif
 
 class Controller
 {
@@ -12,6 +14,7 @@ public:
 
     virtual void initialize() = 0;
     virtual void finalize() = 0;
+    
     bool toggle_view();
 
 protected:

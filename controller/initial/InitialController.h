@@ -2,27 +2,34 @@
 #define INITIAL_CONTROLLER_H
 
 #include "common/FBAttrs.h"
-#include "../Controller.h"
+#include "controller/Controller.h"
 #include "view/initial/InitialFrame.h"
 
-#include <wx/fileconf.h>
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
 
 class InitialController final : public Controller
 {
 public:
-    InitialController() = default;
+    InitialController()  = default;
     ~InitialController() = default;
 
     virtual void initialize() override;
-    virtual void finalize() override;
+    virtual void finalize()   override;
 
 private:
     void switch_type(FBType type);
     
-    void create_frame(wxFileConfig& config);
-    void create_binds(wxFileConfig& config);
+    void create_frame();
+    void create_binds();
 
-    auto get_casted_frame(){return (InitialFrame*) frame;}
+    auto get_casted_frame(){ return (InitialFrame*) frame; };
+
+    wxString m_app_name;
+    int m_window_width;
+    int m_window_height;
 
     std::string m_chars_kana;
     std::string m_pad_kana;

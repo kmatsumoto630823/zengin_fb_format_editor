@@ -166,11 +166,11 @@ const FBAttrsArray ATTRS_ARRAY_FURIKAE =
     }//END
 };
 
-constexpr auto chars_kana_default  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜ¦İŞß";
-constexpr auto pad_kana_default    = "R ";
+const char* chars_kana_default  = " ()-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜ¦İŞß";
+const char* pad_kana_default    = "R ";
 
-constexpr auto chars_num_default   = "0123456789";
-constexpr auto pad_num_default     = "L0";
+const char* chars_num_default   = "0123456789";
+const char* pad_num_default     = "L0";
 
 FBAttrsArray make_attrs_array
 (

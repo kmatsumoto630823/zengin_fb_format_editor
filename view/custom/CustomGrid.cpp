@@ -1,10 +1,5 @@
 #include "CustomGrid.h"
-
-#include <wx/textctrl.h>
 #include <wx/richtooltip.h>
-#include <wx/valtext.h>
-#include <wx/msgdlg.h>
-#include <wx/log.h>
 
 // trimGridCellTextEditor
 void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler)
@@ -16,7 +11,7 @@ void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandle
     if(m_label.empty()) return;
     if(m_description.empty()) return;
 
-    Text()->Bind(wxEVT_CHAR_HOOK, [=, this](wxKeyEvent& event)
+    Text()->Bind(wxEVT_CHAR_HOOK, [=, this]([[maybe_unused]]wxKeyEvent& event)
     {
         event.DoAllowNextEvent();
 
@@ -124,30 +119,30 @@ CustomGrid::CustomGrid
 )
 : wxGrid(parent, id, pos, size, style, name)
 {
-    auto font_grid_cell = parent->GetFont();
-    font_grid_cell.SetPointSize(12);
-    font_grid_cell.SetFamily(wxFONTFAMILY_TELETYPE);
+    auto font = parent->GetFont();
+    font.SetPointSize(12);
+    font.SetFamily(wxFONTFAMILY_TELETYPE);
 
     SetGridLineColour(wxColour(0, 0, 0));
-    SetDefaultCellFont(font_grid_cell);
+    SetDefaultCellFont(font);
     SetTabBehaviour(wxGrid::Tab_Wrap);
     SetCellHighlightColour(GetSelectionBackground());
     DisableDragRowSize();
     CreateGrid(0, 0, wxGrid::wxGridSelectRows);
 
-    Bind(wxEVT_GRID_CELL_CHANGED, [=, this](wxGridEvent& event)
+    Bind(wxEVT_GRID_CELL_CHANGED, [=, this]([[maybe_unused]]wxGridEvent& event)
     {
-        auto grid_table = GetTable();
+        auto table = GetTable();
 
         auto row = event.GetRow();
         auto col = event.GetCol();
 
         auto& attr = m_attrs[col];
-        auto value = grid_table->GetValue(row, col);
+        auto&& value = table->GetValue(row, col);
 
-        if(attr.length - value.length() < 0)
+        if(value.length() > attr.length)
         {
-            wxLogMessage("length - value.length() < 0");
+            wxLogMessage("value.length() > attr.length");
             return;
         }
 
@@ -159,20 +154,20 @@ CustomGrid::CustomGrid
             value = attr.initial_value;
         }
 
-        if(attr.pad_info[0]      == 'R') value.append(   attr.length - value.length(), attr.pad_info[1]);
+             if(attr.pad_info[0] == 'R') value.append(   attr.length - value.length(), attr.pad_info[1]);
         else if(attr.pad_info[0] == 'L') value.insert(0, attr.length - value.length(), attr.pad_info[1]);
 
-        if(value != attr.initial_value && value.find_first_not_of(attr.char_includes) != wxNOT_FOUND)
+        if(value != attr.initial_value && value.find_first_not_of(attr.char_includes) != wxString::npos)
         {
             wxMessageDialog mdialog(this, "不正な値です\r\n編集前の値に戻します", "警告", wxOK | wxICON_WARNING);
             mdialog.ShowModal();
             value = event.GetString();
         }
 
-        grid_table->SetValue(row, col, value);
+        table->SetValue(row, col, value);
     });
 
-    Bind(wxEVT_GRID_LABEL_LEFT_CLICK, [=, this](wxGridEvent& event)
+    Bind(wxEVT_GRID_LABEL_LEFT_CLICK, [=, this]([[maybe_unused]]wxGridEvent& event)
     {
 
     });  
@@ -369,7 +364,7 @@ void CustomGrid::delete_selected()
 
     wxString massage;        
     massage += "レコード";
-    for(auto& i : selected) massage += '[' + wxString::Format("%d", i + 1) + ']';      
+    for(auto& i : selected) massage += "[" + wxString::Format("%d", i + 1) + "]";      
     massage += "を削除します";
 
     wxMessageDialog mdialog(this, massage, "確認", wxOK | wxCANCEL);
@@ -377,11 +372,11 @@ void CustomGrid::delete_selected()
 
     ClearSelection();
 
-    selected.Sort([](auto lhs, auto rhs){return rhs - lhs;});
-    for(auto& insert_pos : selected)
+    selected.Sort([](auto lhs, auto rhs){ return rhs - lhs; });
+    for(auto& pos : selected)
     {
         auto table = GetTable();
-        table->DeleteRows(insert_pos);
+        table->DeleteRows(pos);
     }
 }
 
@@ -412,8 +407,8 @@ void CustomGrid::search_next_value(const wxString& search_value, bool is_forward
         return;
     }
 
-    auto width  = GetNumberCols();
     auto height = GetNumberRows();
+    auto width  = GetNumberCols();
 
     auto first_row = GetGridCursorRow();
     auto first_col = GetGridCursorCol();
@@ -426,7 +421,7 @@ void CustomGrid::search_next_value(const wxString& search_value, bool is_forward
     };
 
     auto current_pos = first_row * width + first_col;
-    if(first_value.find(search_value) != wxNOT_FOUND)
+    if(first_value.find(search_value) != wxString::npos)
     {
         next(current_pos);
     }
@@ -452,7 +447,7 @@ void CustomGrid::search_next_value(const wxString& search_value, bool is_forward
         auto current_col = current_pos % width;
 
         auto current_value = GetCellValue(current_row, current_col);
-        if(current_value.find(search_value) != wxNOT_FOUND)
+        if(current_value.find(search_value) != wxString::npos)
         {
             GoToCell(current_row, current_col);
             SetFocus();
@@ -487,16 +482,16 @@ void CustomGrid::swap_rows(int row1, int row2)
 
 
     auto num_cols = GetNumberCols();
-    auto grid_table = GetTable();
+    auto table = GetTable();
     static wxString value_buff1;
     static wxString value_buff2;
     for(decltype(num_cols) col = 0; col < num_cols; ++col)
     {
-        value_buff1 = grid_table->GetValue(row1, col);
-        value_buff2 = grid_table->GetValue(row2, col);
+        value_buff1 = table->GetValue(row1, col);
+        value_buff2 = table->GetValue(row2, col);
 
-        grid_table->SetValue(row1, col, value_buff2);
-        grid_table->SetValue(row2, col, value_buff1);
+        table->SetValue(row1, col, value_buff2);
+        table->SetValue(row2, col, value_buff1);
     }    
 }
 

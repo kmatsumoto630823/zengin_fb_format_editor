@@ -3,8 +3,12 @@
 
 #include "common/FBAttrs.h"
 #include "view/custom/CustomGrid.h"
-#include <wx/dialog.h>
 
+#include <wx/wxprec.h>
+
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
 
 class GridDialog : public wxDialog
 {
@@ -12,7 +16,6 @@ public:
 	GridDialog
     (
         const FBAttrs& attrs,
-        const wxString& message,
         wxWindow* parent,
         wxWindowID id,
         const wxString& title,

@@ -4,10 +4,14 @@
 #include "common/FBAttrs.h"
 #include "view/custom/CustomGrid.h"
 
+#include <wx/wxprec.h>
+
+#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#include <wx/frame.h>
-#include <wx/button.h>
+#endif
+
 #include <wx/srchctrl.h>
+#include <array>
 
 
 enum ID_MENU
@@ -46,7 +50,7 @@ public:
     InitialFrame();
 
     void force_refresh();
-
+    void reset_grids();
     void save_editing_value();
     bool is_edited_any();
 
@@ -85,7 +89,10 @@ public:
 
     CustomGrid* get_grid_end(){ return grid_end; };
 
-    CustomGrid* get_grid(FBPart part){ return grids[(FBEnumInt)part]; };
+    auto get_grid_array()
+    {
+        return std::array<CustomGrid*, (FBEnumInt)FBPart::ITEM_NUM>{grid_header, grid_data, grid_trailer, grid_end};
+    };
 
 private:
     wxMenuBar* menu_bar;
@@ -120,7 +127,5 @@ private:
     wxButton* button_trailer_recalculated;
 
     CustomGrid* grid_end;
-
-    CustomGrid* grids[(FBEnumInt)FBPart::ITEM_NUM];
 };
 #endif // INITIAL_FRAME_H

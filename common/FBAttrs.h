@@ -5,11 +5,16 @@
 #include<array>
 #include<string>
 
+constexpr std::size_t FB_LINE_WIDTH = 120;
+constexpr std::size_t FB_PARTCODE_HEADER  = 1;
+constexpr std::size_t FB_PARTCODE_DATA    = 2;
+constexpr std::size_t FB_PARTCODE_TRAILER = 8;
+constexpr std::size_t FB_PARTCODE_END     = 9;
+
 using FBEnumInt = int;
 
 enum class FBPart : FBEnumInt
 {
-    CURRENT = -1,
     HEADER = 0,
     DATA,
     TRAILER,
@@ -25,15 +30,8 @@ constexpr std::array<const char*, (FBEnumInt)FBPart::ITEM_NUM> FBPartLabel=
     "ƒGƒ“ƒh"
 };
 
-constexpr std::size_t FB_WIDTH = 120;
-constexpr std::size_t FB_PART_HEADER  = 1;
-constexpr std::size_t FB_PART_DATA    = 2;
-constexpr std::size_t FB_PART_TRAILER = 8;
-constexpr std::size_t FB_PART_END     = 9;
-
 enum class FBType : FBEnumInt
 {
-    CURRENT = -1,
     SOHFURI = 0,
     KYUYO_SHOYO,
     FURIKAE,
@@ -49,7 +47,7 @@ constexpr std::array<const char*, (FBEnumInt)FBType::ITEM_NUM> FBTypeLabel=
 
 enum class FBNewLine : FBEnumInt
 {
-    CURRENT = -1,
+    UNDEFINED = -1,
     CRLF = 0,
     CR,
     LF,
@@ -91,10 +89,10 @@ using FBAttrsArray = std::array<FBAttrs, (FBEnumInt)FBPart::ITEM_NUM>;
 FBAttrsArray make_attrs_array
 (
     FBType type = FBType::SOHFURI,
-    const char* chars_kana = "",
-    const char* pad_kana   = "",
-    const char* chars_num  = "",
-    const char* pad_num    = ""
+    const char* chars_kana = nullptr,
+    const char* pad_kana   = nullptr,
+    const char* chars_num  = nullptr,
+    const char* pad_num    = nullptr
 );
 
 #endif //FB_ATTRS_H
