@@ -10,7 +10,12 @@
 
 class App : public wxApp
 {
+public:
     virtual bool OnInit() override;
+    virtual int  OnExit() override;
+
+private:
+    void* m_ctrl;
 };
 
 #endif //APP_H

@@ -5,9 +5,20 @@ wxIMPLEMENT_APP(App);
 
 bool App::OnInit()
 {
-    Controller* ctrl = new InitialController();
+    m_ctrl = new InitialController();
+
+    auto ctrl = static_cast<InitialController*>(m_ctrl);
     ctrl->initialize();
     ctrl->toggle_view();
 
     return true;
+}
+
+int App::OnExit()
+{
+    auto ctrl = static_cast<InitialController*>(m_ctrl);
+    ctrl->finalize();
+    
+    delete ctrl;
+    return 0;
 }

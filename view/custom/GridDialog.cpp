@@ -46,24 +46,30 @@ GridDialog::GridDialog
 
         sizer_top->AddSpacer(10);
 
-    searchctrl->Bind(wxEVT_SEARCH, [=, this]([[maybe_unused]]wxCommandEvent& event)
+    searchctrl->Bind(wxEVT_SEARCH, [=, this](wxCommandEvent& e)
     {
+        [[maybe_unused]] auto& event = e;
+
         auto search_value = searchctrl->GetValue();
         auto is_forward = true;
         
         m_grid->search_next_value(search_value, is_forward);
     });
 
-    button_search_forward->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
+    button_search_forward->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& e)
     {
+        [[maybe_unused]] auto& event = e;
+
         auto search_value = searchctrl->GetValue();
         auto is_forward = true;
         
         m_grid->search_next_value(search_value, is_forward);
     });
 
-    button_search_backward->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
+    button_search_backward->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& e)
     {
+        [[maybe_unused]] auto& event = e;
+
         auto search_value = searchctrl->GetValue();
         auto is_forward = false;
         
@@ -71,22 +77,21 @@ GridDialog::GridDialog
     });
 
 
-    button_select_all->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
+    button_select_all->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& e)
     {
+        [[maybe_unused]] auto& event = e;
+
         m_grid->SelectAll();
         m_grid->SetFocus();
     });
 
-    button_clear_selected->Bind(wxEVT_BUTTON, [=, this]([[maybe_unused]]wxCommandEvent& event)
+    button_clear_selected->Bind(wxEVT_BUTTON, [=, this](wxCommandEvent& e)
     {
+        [[maybe_unused]] auto& event = e;
+        
         m_grid->ClearSelection();
         m_grid->SetFocus();
     });
-}
-
-GridDialog::~GridDialog()
-{
-
 }
 
 int GridDialog::ShowModal()

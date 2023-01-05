@@ -13,8 +13,6 @@ class MyAboutDialogInfo
 {
 public:
     MyAboutDialogInfo();
-    ~MyAboutDialogInfo() = default;
-
     void myAboutBox(wxWindow* parent);
 
 private:

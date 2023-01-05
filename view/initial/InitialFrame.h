@@ -54,7 +54,7 @@ public:
     void save_editing_value();
     bool is_edited_any();
 
-    //getter
+    // getter
     wxMenuBar* get_menu_bar(){ return menu_bar; };
     wxMenu* get_menu_file(){ return menu_file; };
     wxMenu* get_menu_edit(){ return menu_edit; };

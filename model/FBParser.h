@@ -14,9 +14,8 @@ class FBGrid : public FBGridBase
 {
 public:
     FBGrid(const FBAttrs& attrs);
-    ~FBGrid();
 
-    bool chk_and_add(const FBLine& line);
+    bool add_line(const FBLine& line);
 
     // For Grid Operation
     std::size_t get_number_rows() const;
@@ -31,21 +30,18 @@ public:
     bool delete_rows(std::size_t row, std::size_t num_rows);
     
 private:
-    FBGridBase& m_data;
-    const FBAttrs& m_attrs;
-
-    std::string m_str_buff;
+    FBAttrs m_attrs;
+    std::string m_stdstr_buff;
 };
 
 class FBParser
 {
 public:
     FBParser(const FBAttrsArray& attrs_array);
-    ~FBParser();
 
     bool open_file(const std::string& path); 
     bool save_file(const std::string& path);
-    bool from_text(const std::string& raw_text);
+    bool from_text(const std::string& text);
 
     FBGrid& operator[](FBPart part){ return m_grid_array.at((FBEnumInt)part); };
     FBGrid& operator[](FBEnumInt part){ return m_grid_array.at(part); };
@@ -55,8 +51,8 @@ public:
 
 private:
     using FBGridArray = std::array<FBGrid, (FBEnumInt)FBPart::ITEM_NUM>;
-    FBGridArray m_grid_array;
-    
+
+    FBGridArray m_grid_array;    
     FBNewLine m_newline;
 };
 

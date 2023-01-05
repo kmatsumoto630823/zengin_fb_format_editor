@@ -127,7 +127,6 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
         sizer_top->Add(grid_end, 0, wxALIGN_LEFT | wxLEFT, 1);
         sizer_top->AddSpacer(10);
 
-
     // STATUS
     CreateStatusBar();
 }

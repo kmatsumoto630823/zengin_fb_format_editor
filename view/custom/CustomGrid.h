@@ -14,19 +14,18 @@ class trimGridCellTextEditor : public wxGridCellTextEditor
 {
 public:
     trimGridCellTextEditor(size_t maxChars = 0) : wxGridCellTextEditor(maxChars){};
-    virtual ~trimGridCellTextEditor(){};
     
     virtual void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) override;
     virtual void BeginEdit(int row, int col, wxGrid* grid) override;
     virtual void StartingKey(wxKeyEvent& event) override;
     
-    void SetTipString(const wxString& label, const wxString& description);
+    void SetTipString(const wxString& label, const wxString& descript);
     void SetValidString(const wxString& char_includes);
 
 private:
     wxString m_char_includes;
     wxString m_label;
-    wxString m_description;
+    wxString m_descript;
     bool m_isShowedTip;
 };
 
@@ -42,7 +41,6 @@ public:
         long style = wxWANTS_CHARS,
         const wxString& name = wxGridNameStr
     );
-    virtual ~CustomGrid();
 
     void reset(const FBAttrs& attrs);
     bool is_edited();

@@ -27,8 +27,6 @@ public:
     Adapter(wxGridTableBase* wxgridTable){ m_wxgridTable = wxgridTable; };
     Adapter(wxGridTableBase& wxgridTable){ m_wxgridTable = &wxgridTable; };
 
-    ~Adapter(){};
-
     //Adapter Function
     siz_t GetNumberRows() const { return m_wxgridTable->GetNumberRows(); };
     siz_t GetNumberCols() const { return m_wxgridTable->GetNumberCols(); };   
@@ -84,27 +82,24 @@ public:
 
 private:
     FBGrid* m_fbgrid;
-
     wxString m_wxstrBuff;
     std::string m_stdstrBuff;
 };
 
 template<typename T>
-using remove_ptrcvref_t = std::remove_pointer_t<std::remove_cvref_t<T>>;
+using rm_ptrcvref_t = std::remove_pointer_t<std::remove_cvref_t<T>>;
 
 template<typename T>
-Adapter(T) -> Adapter<remove_ptrcvref_t<T>>;
+Adapter(T) -> Adapter<rm_ptrcvref_t<T>>;
 
 template<typename T>
-requires std::derived_from<remove_ptrcvref_t<T>, wxGridTableBase>
+requires 
+    std::derived_from<rm_ptrcvref_t<T>, wxGridTableBase> ||
+    std::derived_from<rm_ptrcvref_t<T>, wxGrid>
 Adapter(T) -> Adapter<wxGridTableBase>;
 
 template<typename T>
-requires std::derived_from<remove_ptrcvref_t<T>, wxGrid>
-Adapter(T) -> Adapter<wxGridTableBase>;
-
-template<typename T>
-requires std::derived_from<remove_ptrcvref_t<T>, FBGrid>
+requires std::derived_from<rm_ptrcvref_t<T>, FBGrid>
 Adapter(T) -> Adapter<FBGrid>;
 
 
@@ -156,59 +151,6 @@ inline void copy(T& src, U& dst)
             dst.SetValue(row, col, value);
         }
     }
-}
-
-template<typename T, typename U, typename V>
-requires GridOperatable<T> && GridOperatable<U>
-inline void copy(T& src, U& dst, V* dlg)
-{
-    if((void*)&src == (void*)&dst)
-    {
-        wxLogMessage("(void*)&src == (void*)&dst");
-        return;      
-    }
-
-    if(src.GetNumberCols() != dst.GetNumberCols())
-    {
-        wxLogMessage("src.GetNumberCols() != dst.GetNumberCols()");
-        return;
-    }
-
-    auto numRows = src.GetNumberRows();
-    auto numCols = src.GetNumberCols();
-
-    if(dst.GetNumberRows() != 0)
-    {
-        dst.DeleteRows(0, dst.GetNumberRows());
-    }
-    
-    dst.AppendRows(numRows);
-
-    wxString msg;
-    auto update_msg = [&msg, &dlg](auto row, auto numRows)
-    {
-        msg.Empty();
-        msg <<  row * 100 / numRows << "% ";
-        msg << "( " << row  << " / " << numRows << " )";
-        dlg->SetRange(numRows);
-        dlg->Update(row, msg);
-    };
-
-    for(decltype(numRows) row = 0; row < numRows; ++row)  
-    {
-        if(row % (numRows / 100 + 1) == 0)
-        {
-            update_msg(row, numRows);
-        }
-
-        for(decltype(numCols) col = 0; col < numCols; ++col)
-        {
-            auto&& value = src.GetValue(row, col);
-            dst.SetValue(row, col, value);
-        }
-    }
-
-    update_msg(numRows, numRows);
 }
 
 template<typename T, typename U>

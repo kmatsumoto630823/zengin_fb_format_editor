@@ -24,7 +24,6 @@ public:
         long style = wxDEFAULT_DIALOG_STYLE,
         const wxString& name = wxDialogNameStr
     );
-    virtual ~GridDialog();
 
     virtual int ShowModal() override;
     CustomGrid* get_grid(){ return m_grid; }

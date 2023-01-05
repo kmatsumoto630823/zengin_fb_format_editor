@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <wx/log.h>
 
-consteval FBLine MAKE_SPACE_LINE()
+consteval auto MAKE_SPACE_LINE()
 {
     FBLine line;
     line.fill(' ');
@@ -13,43 +13,32 @@ consteval FBLine MAKE_SPACE_LINE()
     return line;
 }
 
-constexpr FBLine SPACE_LINE = MAKE_SPACE_LINE();
+constexpr auto SPACE_LINE = MAKE_SPACE_LINE();
 
-FBGrid::FBGrid(const FBAttrs& attrs) : m_data(*this), m_attrs(attrs)
+FBGrid::FBGrid(const FBAttrs& attrs)
 {
-
+    m_attrs = attrs;
 };
 
-FBGrid::~FBGrid()
+bool FBGrid::add_line(const FBLine& line)
 {
-
-};
-
-bool FBGrid::chk_and_add(const FBLine& line)
-{
-    std::string_view strview(line.data());
     for(auto& attr : m_attrs)
     {
-        auto value = strview.substr(attr.offset, attr.length);
-
-        if(value.find_first_not_of(attr.char_includes) != std::string_view::npos)
+        std::string_view value(line.data() + attr.offset, attr.length);
+        if(!attr.check_value(value))
         {
-            if(attr.initial_value == nullptr || value != attr.initial_value){
-                wxLogMessage("value.find_first_not_of(attr.char_includes) != std::string_view::npos");
-                wxLogMessage("attr.initial_value == nullptr || value != attr.initial_value");
-                wxLogMessage("invalid value : " + wxString(value.data(), value.size()));
-                return false;
-            }
+            wxLogMessage("check_value(attr, value) : false");
+            return false;
         }
     }
 
-    push_back(line);
+    this->push_back(line);
     return true;
 }
 
 std::size_t FBGrid::get_number_rows() const
 {
-    return m_data.size();
+    return this->size();
 }
 
 std::size_t FBGrid::get_number_cols() const
@@ -59,50 +48,40 @@ std::size_t FBGrid::get_number_cols() const
 
 const std::string& FBGrid::get_value(std::size_t row, std::size_t col)
 {
-    if(row >= m_data.size() || col >= m_attrs.size())
+    if(row >= this->size() || col >= m_attrs.size())
     {
-        wxLogMessage("row >= m_data.size() || col >= m_attrs.size()");
-        m_str_buff = "";
-        return m_str_buff;
+        wxLogMessage("row >= this->size() || col >= m_attrs.size()");
+        m_stdstr_buff = "";
+
+        return m_stdstr_buff;
     }
     
     auto& attr = m_attrs.at(col);
-    auto& line = m_data.at(row);
+    auto& line = this->at(row);
     
     std::string_view str_view(line.data());
-    m_str_buff = str_view.substr(attr.offset, attr.length);
+    m_stdstr_buff = str_view.substr(attr.offset, attr.length);
     
-    return m_str_buff;
+    return m_stdstr_buff;
 }
 
 bool FBGrid::set_value(std::size_t row, std::size_t col, const std::string& value)
 {
-    if(row >= m_data.size() || col >= m_attrs.size())
+    if(row >= this->size() || col >= m_attrs.size())
     {
-        wxLogMessage("row >= m_data.size() || col >= m_attrs.size()");
+        wxLogMessage("row >= this->size() || col >= m_attrs.size()");
         return false;
     }
 
     auto& attr = m_attrs.at(col);
 
-    if(value.size() != attr.length)
+    if(!attr.check_value(value))
     {
-        wxLogMessage("value.size() != attr.length");
+        wxLogMessage("attr.check_value(value) : false");
         return false;
     }
 
-
-    if(value.find_first_not_of(attr.char_includes) != std::string::npos)
-    {
-        if(attr.initial_value == nullptr || value != attr.initial_value)
-        {
-            wxLogMessage("value.find_first_not_of(attr.char_includes) != std::string_view::npos");
-            wxLogMessage("attr.initial_value == nullptr || value != attr.initial_value");
-            return false;
-        }
-    }
-
-    auto& line = m_data.at(row);
+    auto& line = this->at(row);
     std::copy(value.begin(), value.end(), line.begin() + attr.offset);
 
     return true;
@@ -110,46 +89,42 @@ bool FBGrid::set_value(std::size_t row, std::size_t col, const std::string& valu
 
 bool FBGrid::assign_rows(std::size_t num_rows)
 {
-    m_data.assign(num_rows, SPACE_LINE);
-
+    this->assign(num_rows, SPACE_LINE);
     return true;
 }
 
 bool FBGrid::append_rows(std::size_t num_rows)
 {
-    m_data.resize(size() + num_rows, SPACE_LINE);
-
+    this->resize(size() + num_rows, SPACE_LINE);
     return true;
 }
 
 bool FBGrid::insert_rows(std::size_t row, std::size_t num_rows)
 {
-    auto first = m_data.begin() + row;
+    auto first = this->begin() + row;
 
-    if(first > m_data.end())
+    if(first > this->end())
     {
-        wxLogMessage("first > m_data.end()");
+        wxLogMessage("first > this->end()");
         return false;
     }
 
-    m_data.insert(first, num_rows, SPACE_LINE);
-
+    this->insert(first, num_rows, SPACE_LINE);
     return true;
 }
 
 bool FBGrid::delete_rows(std::size_t row, std::size_t num_rows)
 {   
-    auto first = m_data.begin() + row;
+    auto first = this->begin() + row;
     auto last = first + num_rows;
 
-    if(last > m_data.end())
+    if(last > this->end())
     {
-        wxLogMessage("last > m_data.end()");
+        wxLogMessage("last > this->end()");
         return false;
     }
 
-    m_data.erase(first, last);
-
+    this->erase(first, last);
     return true;
 }
 
@@ -164,8 +139,6 @@ m_grid_array
 {
     m_newline = FBNewLine::CRLF;
 }
-
-FBParser::~FBParser(){}
 
 bool FBParser::open_file(const std::string& path)
 {
@@ -187,13 +160,13 @@ bool FBParser::open_file(const std::string& path)
 
     ifs.seekg(0, std::ios_base::beg);
 
-    std::string raw_text;
-    raw_text.reserve(file_size);
+    std::string text;
+    text.reserve(file_size);
     auto ifs_it = std::istreambuf_iterator<char>(ifs);
     auto ifs_last = std::istreambuf_iterator<char>();
-    raw_text.assign(ifs_it, ifs_last);
+    text.assign(ifs_it, ifs_last);
 
-    return from_text(raw_text);
+    return from_text(text);
 }
 
 bool FBParser::save_file(const std::string& path)
@@ -214,11 +187,14 @@ bool FBParser::save_file(const std::string& path)
     return true;
 };
 
-bool FBParser::from_text(const std::string& raw_text)
+bool FBParser::from_text(const std::string& text)
 {
-    for(auto& grid : m_grid_array) grid.clear();
+    auto mod_text = text;
 
-    auto text = raw_text;
+    for(auto& grid : m_grid_array) 
+    {
+        grid.clear();
+    }
 
     std::string_view del_chars = "\r\n\t,";
     auto isDel = [del_chars](auto&& x)
@@ -226,20 +202,20 @@ bool FBParser::from_text(const std::string& raw_text)
         return del_chars.find(x) != std::string_view::npos;
     };
 
-    std::erase_if(text, isDel);
+    std::erase_if(mod_text, isDel);
 
-    if(text.size() % FB_LINE_WIDTH != 0)
+    if(mod_text.size() % FB_LINE_WIDTH != 0)
     {
         wxLogMessage("text.size() mod FB_WIDTH != 0");
         return false;
     }
 
     std::size_t part_code = 0;
-    for(decltype(text.size()) i = 0; i < text.size(); i += FB_LINE_WIDTH)
+    for(decltype(mod_text.size()) offset = 0; offset < mod_text.size(); offset += FB_LINE_WIDTH)
     {
         auto line = SPACE_LINE;
 
-        auto first = text.begin() + i;
+        auto first = mod_text.begin() + offset;
         auto last = first + FB_LINE_WIDTH;
         std::copy(first, last, line.begin());
 
@@ -279,9 +255,9 @@ bool FBParser::from_text(const std::string& raw_text)
 
         auto& grid = m_grid_array.at((FBEnumInt)part);
 
-        if(!grid.chk_and_add(line))
+        if(!grid.add_line(line))
         {
-            wxLogMessage("grid.chk_and_add(line) : false");
+            wxLogMessage("grid.add_line(line) : false");
             return false;
         }
 
