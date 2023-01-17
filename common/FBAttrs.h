@@ -125,9 +125,9 @@ struct FBAttr
             return false; 
         }
 
-        if(value.find_first_not_of(char_includes) != T::npos)
+        if(value.find_first_not_of(char_includes) != value.npos)
         {
-            if(optionality != 'O' || value.find_first_not_of(" ") != T::npos)
+            if(optionality != 'O' || value.find_first_not_of(" ") != value.npos)
             {
                 return false;
             }

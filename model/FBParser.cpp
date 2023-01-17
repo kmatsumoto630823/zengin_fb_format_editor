@@ -199,7 +199,7 @@ bool FBParser::from_text(const std::string& text)
     std::string_view del_chars = "\r\n\t,";
     auto isDel = [del_chars](auto&& x)
     {
-        return del_chars.find(x) != std::string_view::npos;
+        return del_chars.find(x) != del_chars.npos;
     };
 
     std::erase_if(mod_text, isDel);

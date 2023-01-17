@@ -9,8 +9,6 @@
 #include <wx/fileconf.h>
 #include <wx/clipbrd.h>
 
-#include <ranges>
-
 #define F() (get_frame())
 #define _do_callback_(collback) do {F()->Freeze(); (collback); F()->force_refresh(); F()->Thaw();} while(0)
 
@@ -164,9 +162,10 @@ void InitialController::create_binds()
 
         for(FBEnumInt i = 0; i < (FBEnumInt)FBPart::ITEM_NUM; ++i)
         {
+            /* GridOperation */
             GridOps::Adapter src = fb[i];
             GridOps::Adapter dst = F()->get_grid_array()[i];
-            GridOps::copy(src, dst);
+            GridOps::Copy(src, dst);
         }
     };
 
@@ -246,7 +245,44 @@ void InitialController::create_binds()
 
         if(zero_kingaku_count > 0)
         {
-            wxMessageDialog mdialog(F(), "金額が０円のデータレコードが存在します\r\n続行しますか？", "警告", wxOK | wxCANCEL | wxICON_WARNING);
+            wxMessageDialog mdialog(F(), "金額が０のデータレコードが存在します\r\n続行しますか？", "警告", wxOK | wxCANCEL | wxICON_WARNING);
+            if(mdialog.ShowModal() == wxID_CANCEL)
+            {
+                return;
+            }
+        }
+
+        long long invalid_blank_count = 0;
+
+        for(FBEnumInt i = 0; i < (FBEnumInt)FBPart::ITEM_NUM; ++i)
+        {
+            auto grid = F()->get_grid_array()[i];
+            auto table = grid->GetTable();
+            auto& attrs = m_attrs_array[i];
+
+            auto numRows = table->GetNumberRows();
+            auto numCols = table->GetNumberCols();
+
+            for(decltype(numRows) row = 0; row < numRows; ++row)
+            {
+                for(decltype(numCols) col = 0; col < numCols; ++col)
+                {
+                    auto& attr = attrs[col];
+                    if(attr.char_includes == " ") continue;
+                    
+                    auto&& value = table->GetValue(row, col);
+
+                    if(attr.optionality == 'M' && value.find_first_not_of(" ") == value.npos)
+                    {
+                        ++invalid_blank_count;
+                    }
+                }
+            }
+        }
+
+        if(invalid_blank_count > 0)
+        {
+            wxMessageDialog mdialog(F(), "必須項目が空欄のレコードが存在します\r\n続行しますか？", "警告", wxOK | wxCANCEL | wxICON_WARNING);
             if(mdialog.ShowModal() == wxID_CANCEL)
             {
                 return;
@@ -276,9 +312,10 @@ void InitialController::create_binds()
 
         for(FBEnumInt i = 0; i < (FBEnumInt)FBPart::ITEM_NUM; ++i)
         {
+            /* GridOperation */
             GridOps::Adapter src = F()->get_grid_array()[i];
             GridOps::Adapter dst = fb[i];
-            GridOps::copy(src, dst);
+            GridOps::Copy(src, dst);
         }
 
         auto chk_cnt = true;
@@ -392,9 +429,11 @@ void InitialController::create_binds()
 
         auto&& value = wxtable->GetValue(0, FB_ORDER_HEADER_TORIKUMIBI);
 
-        GridOps::Adapter src = fb[FBPart::HEADER];
-        GridOps::Adapter dst = wxgrid;   
-        GridOps::copy(src, dst);
+        /* GridOperation */{
+            GridOps::Adapter src = fb[FBPart::HEADER];
+            GridOps::Adapter dst = wxgrid;   
+            GridOps::Copy(src, dst);
+        }
 
         wxtable->SetValue(0, FB_ORDER_HEADER_TORIKUMIBI, value);
 
@@ -432,9 +471,11 @@ void InitialController::create_binds()
             return;
         }
 
-        GridOps::Adapter src = wxgrid;
-        GridOps::Adapter dst = fb[FBPart::HEADER];
-        GridOps::copy(src, dst);
+        /* GridOperation */{
+            GridOps::Adapter src = wxgrid;
+            GridOps::Adapter dst = fb[FBPart::HEADER];
+            GridOps::Copy(src, dst);
+        }
 
         fb[FBPart::DATA   ].assign_rows(0);
         fb[FBPart::TRAILER].assign_rows(0);
@@ -519,9 +560,11 @@ void InitialController::create_binds()
 
         auto&& value = wxtable->GetValue(0, FB_ORDER_HEADER_TORIKUMIBI);
 
-        GridOps::Adapter src = fb[FBPart::HEADER];
-        GridOps::Adapter dst = wxgrid;
-        GridOps::copy(src, dst);
+        /* GridOperation */{
+            GridOps::Adapter src = fb[FBPart::HEADER];
+            GridOps::Adapter dst = wxgrid;
+            GridOps::Copy(src, dst);
+        }
 
         wxtable->SetValue(0, FB_ORDER_HEADER_TORIKUMIBI, value);
 
@@ -725,10 +768,10 @@ void InitialController::create_binds()
         GridDialog gdialog(m_attrs_array[(FBEnumInt)FBPart::DATA], F(), wxID_ANY, "レコードの選択" + message);
         auto dlgrid = gdialog.get_grid();
 
-        {
+        /* GridOperation */{
             GridOps::Adapter src = fb[FBPart::DATA];
             GridOps::Adapter dst = dlgrid;
-            GridOps::copy(src, dst);
+            GridOps::Copy(src, dst);
         }
 
         gdialog.SetSize(m_window_width, m_window_height);
@@ -738,10 +781,10 @@ void InitialController::create_binds()
         }
         dlgrid->remain_selected();
 
-        {
+        /* GridOperation */{
             GridOps::Adapter src = dlgrid;
             GridOps::Adapter dst = wxgrid;
-            GridOps::insert(src, dst, pos);
+            GridOps::Insert(src, dst, pos);
         }
         
         wxgrid->ClearSelection();
@@ -798,9 +841,11 @@ void InitialController::create_binds()
             return;
         }
 
-        GridOps::Adapter src = wxgrid;
-        GridOps::Adapter dst = fb[FBPart::DATA];
-        GridOps::copy(src, dst);
+        /* GridOperation */{
+            GridOps::Adapter src = wxgrid;
+            GridOps::Adapter dst = fb[FBPart::DATA];
+            GridOps::Copy(src, dst);
+        }
 
         fb[FBPart::HEADER ].assign_rows(0);
         fb[FBPart::TRAILER].assign_rows(0);
@@ -901,9 +946,11 @@ void InitialController::create_binds()
             return;
         }
 
-        GridOps::Adapter src = fb[FBPart::DATA];
-        GridOps::Adapter dst = wxgrid;
-        GridOps::insert(src, dst, pos);
+        /* GridOperation */{
+            GridOps::Adapter src = fb[FBPart::DATA];
+            GridOps::Adapter dst = wxgrid;
+            GridOps::Insert(src, dst, pos);
+        }
         
         wxgrid->ClearSelection();
 

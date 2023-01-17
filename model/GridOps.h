@@ -21,6 +21,9 @@ template<>
 class Adapter<wxGridTableBase>
 {
 public:
+    using size_type  = siz_t;
+    using value_type = val_t;
+
     Adapter(wxGrid* wxgrid){ m_wxgridTable = wxgrid->GetTable(); };
     Adapter(wxGrid& wxgrid){ m_wxgridTable = wxgrid.GetTable(); };
 
@@ -28,61 +31,65 @@ public:
     Adapter(wxGridTableBase& wxgridTable){ m_wxgridTable = &wxgridTable; };
 
     //Adapter Function
-    siz_t GetNumberRows() const { return m_wxgridTable->GetNumberRows(); };
-    siz_t GetNumberCols() const { return m_wxgridTable->GetNumberCols(); };   
+    size_type GetNumberRows() const { return m_wxgridTable->GetNumberRows(); };
+    size_type GetNumberCols() const { return m_wxgridTable->GetNumberCols(); };   
 
-    const val_t& GetValue(siz_t row, siz_t col)
+    const value_type& GetValue(size_type row, size_type col)
     {
         m_wxstrBuff = m_wxgridTable->GetValue(row, col);
         return m_wxstrBuff;
     };
 
-    void SetValue(siz_t row, siz_t col, const val_t& value)
+    void SetValue(size_type row, size_type col, const value_type& value)
     { 
         m_wxstrBuff = value;
         m_wxgridTable->SetValue(row, col, m_wxstrBuff);
     };
 
-    bool AppendRows(siz_t numRows = 1){ return m_wxgridTable->AppendRows(numRows); };
-    bool InsertRows(siz_t pos = 0, siz_t numRows = 1){ return m_wxgridTable->InsertRows(pos, numRows); };
-    bool DeleteRows(siz_t pos = 0, siz_t numRows = 1){ return m_wxgridTable->DeleteRows(pos, numRows); };
+    bool AppendRows(size_type numRows = 1){ return m_wxgridTable->AppendRows(numRows); };
+    bool InsertRows(size_type pos = 0, size_type numRows = 1){ return m_wxgridTable->InsertRows(pos, numRows); };
+    bool DeleteRows(size_type pos = 0, size_type numRows = 1){ return m_wxgridTable->DeleteRows(pos, numRows); };
 
 private:
     wxGridTableBase* m_wxgridTable;
-    wxString m_wxstrBuff;
+    value_type m_wxstrBuff;
 };
 
 template<>
 class Adapter<FBGrid>
 {
 public:
+    using size_type  = siz_t;
+    using value_type = val_t;
+
     Adapter(FBGrid* fbgrid){ m_fbgrid = fbgrid; };
     Adapter(FBGrid& fbgrid){ m_fbgrid = &fbgrid; };
     ~Adapter(){};
 
     //Adapter Function
-    siz_t GetNumberRows() const { return m_fbgrid->get_number_rows(); };
-    siz_t GetNumberCols() const { return m_fbgrid->get_number_cols(); };
+    size_type GetNumberRows() const { return m_fbgrid->get_number_rows(); };
+    size_type GetNumberCols() const { return m_fbgrid->get_number_cols(); };
 
-    const val_t& GetValue(siz_t row, siz_t col)
+    const value_type& GetValue(size_type row, size_type col)
     {
         m_wxstrBuff = m_fbgrid->get_value(row, col);
         return m_wxstrBuff;
     };
 
-    void SetValue(siz_t row, siz_t col, const val_t& value)
+    void SetValue(size_type row, size_type col, const value_type& value)
     {
         m_stdstrBuff = value;
         m_fbgrid->set_value(row, col, m_stdstrBuff);
     };
 
-    bool AppendRows(siz_t numRows = 1){ return m_fbgrid->append_rows(numRows); };
-    bool InsertRows(siz_t pos = 0, siz_t numRows = 1){ return m_fbgrid->insert_rows(pos, numRows); };
-    bool DeleteRows(siz_t pos = 0, siz_t numRows = 1){ return m_fbgrid->delete_rows(pos, numRows); };
+    bool AppendRows(size_type numRows = 1){ return m_fbgrid->append_rows(numRows); };
+    bool InsertRows(size_type pos = 0, size_type numRows = 1){ return m_fbgrid->insert_rows(pos, numRows); };
+    bool DeleteRows(size_type pos = 0, size_type numRows = 1){ return m_fbgrid->delete_rows(pos, numRows); };
 
 private:
     FBGrid* m_fbgrid;
-    wxString m_wxstrBuff;
+
+    value_type m_wxstrBuff;
     std::string m_stdstrBuff;
 };
 
@@ -104,12 +111,12 @@ Adapter(T) -> Adapter<FBGrid>;
 
 
 template<typename T>
-concept GridOperatable = requires (T x, siz_t s, val_t v)
+concept GridOperatable = requires (T x, typename T::size_type s, typename T::value_type v)
 {
-    { x.GetNumberRows() } -> std::same_as<siz_t>;
-    { x.GetNumberCols() } -> std::same_as<siz_t>;
+    { x.GetNumberRows() } -> std::same_as<typename T::size_type>;
+    { x.GetNumberCols() } -> std::same_as<typename T::size_type>;
     
-    { x.GetValue(s, s) } -> std::same_as<const val_t&>;
+    { x.GetValue(s, s) } -> std::same_as<const typename T::value_type&>;
     { x.SetValue(s, s, v) };
  
     { x.AppendRows(s) }    -> std::same_as<bool>;
@@ -119,7 +126,7 @@ concept GridOperatable = requires (T x, siz_t s, val_t v)
 
 template<typename T, typename U>
 requires GridOperatable<T> && GridOperatable<U>
-inline void copy(T& src, U& dst)
+inline void Copy(T& src, U& dst)
 {
     if((void*)&src == (void*)&dst)
     {
@@ -155,7 +162,7 @@ inline void copy(T& src, U& dst)
 
 template<typename T, typename U>
 requires GridOperatable<T> && GridOperatable<U>
-inline void insert(T& src, U& dst, siz_t pos)
+inline void Insert(T& src, U& dst, siz_t pos)
 {
     if((void*)&src == (void*)&dst)
     {
@@ -192,11 +199,10 @@ inline void insert(T& src, U& dst, siz_t pos)
 }
 
 template<typename T, typename U>
-inline void append(T& src, U& dst)
+inline void Append(T& src, U& dst)
 {
     insert(src, dst, dst->GetNumberRows());
 }
-
 
 } // namespace GridOps
 

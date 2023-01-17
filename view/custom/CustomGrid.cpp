@@ -456,7 +456,7 @@ void CustomGrid::search_next_value(const wxString& search_value, bool is_forward
     };
 
     auto current_pos = first_row * width + first_col;
-    if(first_value.find(search_value) != wxString::npos)
+    if(first_value.find(search_value) != first_value.npos)
     {
         next(current_pos);
     }
@@ -481,9 +481,8 @@ void CustomGrid::search_next_value(const wxString& search_value, bool is_forward
         auto current_row = current_pos / width;
         auto current_col = current_pos % width;
 
-        // auto table = GetTable();
         auto&& current_value = table->GetValue(current_row, current_col);
-        if(current_value.find(search_value) != wxString::npos)
+        if(current_value.find(search_value) != current_value.npos)
         {
             GoToCell(current_row, current_col);
             SetFocus();
