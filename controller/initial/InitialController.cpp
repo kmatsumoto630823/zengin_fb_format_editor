@@ -88,15 +88,12 @@ void InitialController::create_binds()
     // NEW
     auto OnNew = [=, this]()
     {
-        if(F()->is_edited_any())
+        wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
+        if(mdialog.ShowModal() == wxID_CANCEL)
         {
-            wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか", "確認", wxOK | wxCANCEL);
-            if(mdialog.ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
+            return;
         }
-
+        
         auto labels = FBTypeLabel;
         wxArrayString choices(labels.size(), labels.data());
 
@@ -122,14 +119,12 @@ void InitialController::create_binds()
     // OPEN
     auto OnOpen = [=, this](const wxString& default_path)
     {
-        if(F()->is_edited_any())
+        wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
+        if(mdialog.ShowModal() == wxID_CANCEL)
         {
-            wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n続行しますか？", "確認", wxOK | wxCANCEL);
-            if(mdialog.ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
+            return;
         }
+        
 
         //auto path = default_path.ToStdString(wxCSConv("cp932"));
         auto&& path = default_path.ToStdString();
@@ -267,9 +262,7 @@ void InitialController::create_binds()
             {
                 for(decltype(numCols) col = 0; col < numCols; ++col)
                 {
-                    auto& attr = attrs[col];
-                    if(attr.char_includes == " ") continue;
-                    
+                    auto& attr = attrs[col];                  
                     auto&& value = table->GetValue(row, col);
 
                     if(attr.optionality == 'M' && value.find_first_not_of(" ") == value.npos)
@@ -351,13 +344,10 @@ void InitialController::create_binds()
      // EXIT
     auto OnExit = [=, this]()
     {
-        if(F()->is_edited_any())
+        wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
+        if(mdialog.ShowModal() == wxID_CANCEL)
         {
-            wxMessageDialog mdialog(F(), "編集中のデータが失われます\r\n終了しますか？", "確認", wxOK | wxCANCEL);
-            if(mdialog.ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
+            return;
         }
 
         F()->Destroy();
@@ -1097,7 +1087,7 @@ void InitialController::create_binds()
             auto& value = sum_kensu_str;
             auto& attr = attrs_trailer[FB_ORDER_TRAILER_KENSU];
 
-            attr.format_value(value);
+            attr.pad_value(value);
 
             if(!attr.check_value(value))
             {
@@ -1112,7 +1102,7 @@ void InitialController::create_binds()
             auto& value = sum_kingaku_str;
             auto& attr = attrs_trailer[FB_ORDER_TRAILER_KINGAKU];
 
-            attr.format_value(value);
+            attr.pad_value(value);
 
             if(!attr.check_value(value))
             {

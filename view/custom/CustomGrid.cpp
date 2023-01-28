@@ -1,8 +1,8 @@
 #include "CustomGrid.h"
 #include <wx/richtooltip.h>
 
-// trimGridCellTextEditor
-void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler)
+// CustomGridCellTextEditor
+void CustomGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler)
 {
     wxGridCellTextEditor::Create(parent, id, evtHandler);
 
@@ -45,7 +45,7 @@ void trimGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandle
     
 }
 
-void trimGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
+void CustomGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
 {
     Text()->Hide();
 
@@ -68,7 +68,7 @@ void trimGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
 
 }
 
-void trimGridCellTextEditor::StartingKey(wxKeyEvent& e)
+void CustomGridCellTextEditor::StartingKey(wxKeyEvent& e)
 {
     [[maybe_unused]] auto& event = e;
 
@@ -111,7 +111,7 @@ void trimGridCellTextEditor::StartingKey(wxKeyEvent& e)
     }
 }
 
-void trimGridCellTextEditor::SetValidString(const wxString& char_includes)
+void CustomGridCellTextEditor::SetValidString(const wxString& char_includes)
 {
     m_char_includes = char_includes;
     
@@ -121,10 +121,39 @@ void trimGridCellTextEditor::SetValidString(const wxString& char_includes)
     SetValidator(col_validator);
 }
 
-void trimGridCellTextEditor::SetTipString(const wxString& label, const wxString& descript)
+void CustomGridCellTextEditor::SetTipString(const wxString& label, const wxString& descript)
 {
     m_label = label;
     m_descript = descript;
+}
+
+// CustomGridCellStringRenderer
+void CustomGridCellStringRenderer::Draw
+(
+    wxGrid& grid,
+    wxGridCellAttr& attr,
+    wxDC& dc,
+    const wxRect& rect,
+    int row,
+    int col,
+    bool isSelected
+
+)
+{
+    auto org_colour = attr.GetBackgroundColour();
+
+    if((row & 1) == 0)
+    {
+        attr.SetBackgroundColour(m_odd_lines_colour);
+    }
+    else
+    {
+        attr.SetBackgroundColour(m_even_lines_colour);
+    }
+
+    wxGridCellStringRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+
+    attr.SetBackgroundColour(org_colour);
 }
 
 
@@ -148,6 +177,11 @@ CustomGrid::CustomGrid
     SetDefaultCellFont(font);
     SetTabBehaviour(wxGrid::Tab_Wrap);
     SetCellHighlightColour(GetSelectionBackground());
+
+    auto renderer = 
+        new CustomGridCellStringRenderer({255, 255, 255}, {221, 235, 247});
+    SetDefaultRenderer(renderer);
+
     DisableDragRowSize();
     DisableDragColSize();
 
@@ -165,7 +199,7 @@ CustomGrid::CustomGrid
         auto&& value = table->GetValue(row, col);
         value.Trim(true);
         value.Trim(false);
-        attr.format_value(value);
+        attr.pad_value(value);
 
         if(!attr.check_value(value))
         {
@@ -205,7 +239,7 @@ void CustomGrid::reset(const FBAttrs& attrs)
         SetColLabelValue(col, attr.label);
 
         auto col_attr = new wxGridCellAttr;
-        auto col_editor = new trimGridCellTextEditor(attr.length);
+        auto col_editor = new CustomGridCellTextEditor(attr.length);
 
         if(attr.order == 0)
         {
@@ -236,7 +270,7 @@ void CustomGrid::reset(const FBAttrs& attrs)
 
         auto& initial_value = wxstr_buff;
         initial_value.clear();
-        attr.format_value(initial_value);
+        attr.pad_value(initial_value);
 
         table->SetValue(row, col, initial_value);
     }
@@ -249,40 +283,6 @@ void CustomGrid::reset(const FBAttrs& attrs)
     SetFocus();        
 
     AutoSize();    
-}
-
-bool CustomGrid::is_edited()
-{
-    if(GetNumberRows() == 0)
-    {
-        return false;
-    }
-
-    if(GetNumberRows() > 1)
-    {
-        return true;
-    }
-
-    wxString wxstr_buff;
-    for(auto& attr : m_attrs)
-    {
-        auto table = GetTable();
-        auto col = attr.order;
-        auto row = GetNumberRows() - 1;
-
-        auto&& value = table->GetValue(row, col);
-
-        auto& initial_value = wxstr_buff;
-        initial_value.clear();
-        attr.format_value(initial_value);
-
-        if(value != initial_value)
-        {
-            return true;
-        }
-    }
-
-    return false;   
 }
 
 void CustomGrid::remain_selected()
@@ -357,7 +357,7 @@ void CustomGrid::insert_selected()
 
                 auto& initial_value =  wxstr_buff;
                 initial_value.clear();
-                attr.format_value(initial_value);
+                attr.pad_value(initial_value);
 
                 table->SetValue(row, col, initial_value);                    
             }

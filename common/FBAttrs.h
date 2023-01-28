@@ -28,11 +28,7 @@ enum class FBPart : FBEnumInt
     ITEM_NUM
 };
 
-template<typename T>
-T get_fb_label(const T& lables)
-{
-    return lables;
-}
+
 
 constexpr std::array<const char*, (FBEnumInt)FBPart::ITEM_NUM> FBPartLabel =
 {
@@ -138,7 +134,7 @@ struct FBAttr
 
     template<typename T>
     requires StringPaddable<T>
-    void format_value(T& value) const
+    void pad_value(T& value) const
     {
         if(value.length() > length)
         {

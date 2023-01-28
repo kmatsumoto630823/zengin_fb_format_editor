@@ -10,10 +10,10 @@
 
 #include <wx/grid.h>
 
-class trimGridCellTextEditor : public wxGridCellTextEditor
+class CustomGridCellTextEditor : public wxGridCellTextEditor
 {
 public:
-    trimGridCellTextEditor(size_t maxChars = 0) : wxGridCellTextEditor(maxChars){};
+    CustomGridCellTextEditor(size_t maxChars = 0) : wxGridCellTextEditor(maxChars){};
     
     virtual void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) override;
     virtual void BeginEdit(int row, int col, wxGrid* grid) override;
@@ -27,6 +27,35 @@ private:
     wxString m_label;
     wxString m_descript;
     bool m_isShowedTip;
+};
+
+class CustomGridCellStringRenderer : public wxGridCellStringRenderer
+{
+public:
+    CustomGridCellStringRenderer
+    (
+        const wxColour& odd_lines_colour,
+        const wxColour& even_lines_colour
+    )
+    {
+        m_odd_lines_colour = odd_lines_colour;
+        m_even_lines_colour = even_lines_colour;
+    };
+
+    virtual void Draw
+    (
+        wxGrid &grid,
+        wxGridCellAttr &attr,
+        wxDC &dc,
+        const wxRect &rect,
+        int row,
+        int col,
+        bool isSelected
+    ) override;
+
+private:
+    wxColour m_odd_lines_colour;
+    wxColour m_even_lines_colour;
 };
 
 class CustomGrid : public wxGrid
@@ -43,7 +72,6 @@ public:
     );
 
     void reset(const FBAttrs& attrs);
-    bool is_edited();
 
     void insert_selected();
     void delete_selected();

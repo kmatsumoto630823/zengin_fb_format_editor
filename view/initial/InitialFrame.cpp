@@ -15,7 +15,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     menu_edit = new wxMenu;
     menu_edit->Append(ID_MENU_HEADER_IMPORT, "＠ヘッダ：読込（ファイル）")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
     menu_edit->Append(ID_MENU_HEADER_EXPORT, "＠ヘッダ：出力（ファイル）")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
-    menu_edit->Append(ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD, "＠ヘッダ：読込（クリップボード）")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
+    menu_edit->Append(ID_MENU_HEADER_IMPORT_FROM_CLIPBOARD, "＠ヘッダ：貼付（クリップボード）")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
 
     menu_edit->AppendSeparator();
     menu_edit->Append(ID_MENU_DATA_SELECT_ALL, "＠データ：全選択\tCtrl+A");
@@ -26,7 +26,7 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     menu_edit->Append(ID_MENU_DATA_DELETE,"＠データ：行削\tDelete")->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_ADD_FROM_FILE, "＠データ：読込（ファイル）")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
     menu_edit->Append(ID_MENU_DATA_EXPORT, "＠データ：出力（ファイル）")->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
-    menu_edit->Append(ID_MENU_DATA_ADD_FROM_CLIPBOARD, "＠データ：読込（クリップボード）\tCtrl+Insert")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
+    menu_edit->Append(ID_MENU_DATA_ADD_FROM_CLIPBOARD, "＠データ：貼付（クリップボード）\tCtrl+Insert")->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_MENU));
     menu_edit->AppendSeparator();
     menu_edit->Append(ID_MENU_TRAILER_RECALCULATE, "＠トレーラー：再計算\tF5")->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_MENU));
 
@@ -58,19 +58,23 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     grid_header = new CustomGrid(panel_top, wxID_ANY);
     button_header_import = new wxButton(panel_top, wxID_ANY, "読込"); button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
     button_header_export = new wxButton(panel_top, wxID_ANY, "出力"); button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
-    button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "読込（クリップボード）", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
+    //button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "貼付（クリップボード）", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
+button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "貼付"); button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
 
     //GRID_DATA
     grid_data = new CustomGrid(panel_top, wxID_ANY);
     button_data_select_all = new wxButton(panel_top, wxID_ANY, "全選択");
     button_data_clear_selected = new wxButton(panel_top, wxID_ANY, "全解除");
-    button_data_move_up = new wxButton(panel_top, wxID_ANY, "上に", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
-    button_data_move_down = new wxButton(panel_top, wxID_ANY, "下に", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
+    //button_data_move_up = new wxButton(panel_top, wxID_ANY, "上へ", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
+    button_data_move_up = new wxButton(panel_top, wxID_ANY, "上移動"); button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
+    //button_data_move_down = new wxButton(panel_top, wxID_ANY, "下へ", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
+    button_data_move_down = new wxButton(panel_top, wxID_ANY, "下移動"); button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
     button_data_add = new wxButton(panel_top, wxID_ANY, "行追"); button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR));
     button_data_delete = new wxButton(panel_top, wxID_ANY, "行削"); button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_TOOLBAR));
     button_data_add_from_file = new wxButton(panel_top, wxID_ANY, "読込"); button_data_add_from_file->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
     button_data_export = new wxButton(panel_top, wxID_ANY, "出力"); button_data_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
-    button_data_add_from_clipboard = new wxButton(panel_top, wxID_ANY, "行追", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
+    //button_data_add_from_clipboard = new wxButton(panel_top, wxID_ANY, "行追", wxDefaultPosition, wxDefaultSize, wxBU_NOTEXT | wxBU_EXACTFIT); button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
+    button_data_add_from_clipboard = new wxButton(panel_top, wxID_ANY, "貼付"); button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
     searchctrl_data_search = new wxSearchCtrl(panel_top, wxID_ANY);
     button_data_search_forward = new wxButton(panel_top, wxID_ANY, "次検索"); button_data_search_forward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR));
     button_data_search_backward = new wxButton(panel_top, wxID_ANY, "前検索"); button_data_search_backward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR));
@@ -145,16 +149,6 @@ void InitialFrame::save_editing_value()
     grid_data->SaveEditControlValue();
     grid_trailer->SaveEditControlValue();
     grid_end->SaveEditControlValue();   
-}
-
-bool InitialFrame::is_edited_any()
-{
-    if(grid_header ->is_edited()) return true;
-    if(grid_data   ->is_edited()) return true;
-    if(grid_trailer->is_edited()) return true;
-    if(grid_end    ->is_edited()) return true;          
-
-    return false;   
 }
 
 

@@ -52,7 +52,6 @@ public:
     void force_refresh();
     void reset_grids();
     void save_editing_value();
-    bool is_edited_any();
 
     // getter
     wxMenuBar* get_menu_bar(){ return menu_bar; };
