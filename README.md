@@ -45,9 +45,9 @@
 
 # Dependencies
 下記の環境でビルド
-- WxWidgets-3.2.1
+- WxWidgets-3.2.2.1
 - Windows 10
-- gcc/MinGW 12.2.0/10.0.0
+- gcc/MinGW 13.1.0/11.0.0
 
 # Author
 kmatsumoto630823
