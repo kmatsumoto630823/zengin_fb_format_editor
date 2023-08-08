@@ -123,12 +123,39 @@ struct FBAttr
             return false; 
         }
 
-        if(value.find_first_not_of(char_includes) != value.npos)
+        auto is_invalid = (value.find_first_not_of(char_includes) != value.npos);
+
+        switch(optionality)
         {
-            if(optionality != 'O' || value.find_first_not_of(" ") != value.npos)
-            {
+            case 'M' :
+                if(is_invalid)
+                {
+                    return false;
+                }
+
+                break;
+
+            case 'O' :
+                if(is_invalid)
+                {
+                    if(value.find_first_not_of(" ") != value.npos)
+                    {
+                        return false;
+                    }
+                }
+
+                break;
+
+            case '-' :                
+                if(is_invalid)
+                {
+                    return false;
+                }
+
+                break;
+
+            default :
                 return false;
-            }
         }
 
         return true;    
@@ -136,11 +163,11 @@ struct FBAttr
 
     template<typename T>
     requires StringPaddable<T>
-    void pad_value(T& value) const
+    bool pad_value(T& value) const
     {
         if(value.length() > length)
         {
-            return;
+            return false;
         }
 
         if(optionality == 'O' && value.length() == 0)
@@ -161,7 +188,7 @@ struct FBAttr
             value.insert(0, pad_num, pad_char);
         }
 
-        return;
+        return true;
     }
 };
 
@@ -171,10 +198,12 @@ using FBAttrsArray = std::array<FBAttrs, (FBEnumInt)FBPart::ITEM_NUM>;
 FBAttrsArray make_attrs_array
 (
     FBType type = FBType::SOHFURI,
-    std::string chars_kana   = "",
-    std::string padding_kana = "",
-    std::string chars_num    = "",
-    std::string padding_num  = ""
+    std::string chars_kana     = "",
+    std::string padding_kana   = "",
+    std::string chars_num      = "",
+    std::string padding_num    = "",
+    std::string chars_dummy    = "",
+    std::string padding_dummy  = ""
 );
 
 #endif //FB_ATTRS_H

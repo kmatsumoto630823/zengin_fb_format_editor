@@ -14,7 +14,7 @@ public:
     virtual int  OnExit() override;
 
 private:
-    void* m_ctrl;
+    void* m_ctrl = nullptr;
 };
 
 #endif //APP_H

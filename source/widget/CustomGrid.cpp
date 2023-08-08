@@ -1,50 +1,6 @@
 #include "CustomGrid.h"
-#include <wx/richtooltip.h>
 
 // CustomGridCellTextEditor
-void CustomGridCellTextEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler)
-{
-    wxGridCellTextEditor::Create(parent, id, evtHandler);
-
-    Text()->SetCursor(wxCURSOR_IBEAM);
-
-    if(m_label.empty())
-    {
-        return;
-    }
-    
-    if(m_descript.empty())
-    {
-        return;
-    }
-
-    Text()->Bind(wxEVT_CHAR_HOOK, [=, this](wxKeyEvent& e)
-    {
-        [[maybe_unused]] auto& event = e;
-
-        event.DoAllowNextEvent();
-
-        auto pos = Text()->GetInsertionPoint();
-        auto key = event.GetKeyCode();
-        
-        if(pos == Text()->GetLastPosition() && (key == WXK_DOWN || key == WXK_RIGHT))
-        {
-            if(m_isShowedTip)
-            {
-                return;
-            }
-
-            m_isShowedTip = true;
-            
-            wxRichToolTip tip(m_label, m_descript);
-            tip.SetIcon(wxICON_INFORMATION);
-            tip.SetTimeout(0);
-            tip.ShowFor(Text());    
-        }
-    });
-    
-}
-
 void CustomGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
 {
     Text()->Hide();
@@ -61,11 +17,9 @@ void CustomGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
     Text()->SetInsertionPointEnd();
     Text()->SelectAll();
     Text()->SetFocus();
+    Text()->SetCursor(wxCURSOR_IBEAM);    
 
     Text()->Show();
-
-    m_isShowedTip = false;
-
 }
 
 void CustomGridCellTextEditor::StartingKey(wxKeyEvent& e)
@@ -121,12 +75,6 @@ void CustomGridCellTextEditor::SetValidString(const wxString& char_includes)
     SetValidator(col_validator);
 }
 
-void CustomGridCellTextEditor::SetTipString(const wxString& label, const wxString& descript)
-{
-    m_label = label;
-    m_descript = descript;
-}
-
 // CustomGridCellStringRenderer
 void CustomGridCellStringRenderer::Draw
 (
@@ -160,12 +108,12 @@ void CustomGridCellStringRenderer::Draw
 // CustomGrid
 CustomGrid::CustomGrid
 (
-    wxWindow *parent,
+    wxWindow* parent,
     wxWindowID id,
-    const wxPoint &pos,
-    const wxSize &size,
+    const wxPoint& pos,
+    const wxSize& size,
     long style,
-    const wxString &name 
+    const wxString& name 
 )
 : wxGrid(parent, id, pos, size, style, name)
 {
@@ -213,7 +161,32 @@ CustomGrid::CustomGrid
     Bind(wxEVT_GRID_LABEL_LEFT_CLICK, [=, this](wxGridEvent& e)
     {
         [[maybe_unused]] auto& event = e;
-    });  
+    });
+
+
+    auto col_label_window = GetGridColLabelWindow();
+    col_label_window->Bind(wxEVT_MOTION, [=](wxMouseEvent& e)
+    {
+        [[maybe_unused]] auto& event = e;
+        event.Skip();
+
+        auto x = event.GetX();
+        auto col = XToCol(x);
+
+        if(m_mouseover_lable_col == col)
+        {
+            return;
+        }
+
+        if(col != wxNOT_FOUND)
+        {
+            auto descript = m_attrs.at(col).descript;
+            col_label_window->SetToolTip(descript);
+        }
+
+        m_mouseover_lable_col = col;
+    });
+
 };
 
 void CustomGrid::reset(const FBAttrs& attrs)
@@ -246,7 +219,6 @@ void CustomGrid::reset(const FBAttrs& attrs)
         }
 
         col_editor->SetValidString(attr.char_includes);
-        col_editor->SetTipString(attr.label, attr.descript);
             
         col_attr->SetEditor(col_editor);
         SetColAttr(col, col_attr);    

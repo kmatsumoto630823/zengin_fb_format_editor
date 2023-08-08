@@ -19,6 +19,10 @@ int App::OnExit()
     auto ctrl = static_cast<InitialController*>(m_ctrl);
     ctrl->finalize();
     
-    delete ctrl;
+    if(ctrl != nullptr)
+    {
+        delete ctrl;
+    }
+    
     return 0;
 }

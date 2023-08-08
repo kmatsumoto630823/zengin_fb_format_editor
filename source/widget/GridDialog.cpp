@@ -10,7 +10,8 @@ GridDialog::GridDialog
     const wxPoint& pos,
     const wxSize& size,
     long style,
-    const wxString& name    
+    const wxString& name
+    
 ) : wxDialog(parent, id, title, pos, size, style, name)
 {
     m_grid = new CustomGrid(this, wxID_ANY);

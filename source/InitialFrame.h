@@ -9,8 +9,8 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-
 #include <wx/srchctrl.h>
+
 #include <array>
 
 
@@ -44,6 +44,7 @@ enum ID_MENU
     ID_MENU_HELP_README,
 };
 
+
 class InitialFrame : public wxFrame
 {
 public:
@@ -54,43 +55,44 @@ public:
     void save_editing_value();
 
     //getter
-    wxMenuBar* get_menu_bar(){ return menu_bar; };
-    wxMenu* get_menu_file(){ return menu_file; };
-    wxMenu* get_menu_edit(){ return menu_edit; };
-    wxMenu* get_menu_search(){ return menu_search; };
-    wxMenu* get_menu_help(){ return menu_help; };
+    auto get_menu_bar(){ return menu_bar; };
+    auto get_menu_file(){ return menu_file; };
+    auto get_menu_edit(){ return menu_edit; };
+    auto get_menu_search(){ return menu_search; };
+    auto get_menu_help(){ return menu_help; };
 
-    wxPanel* get_panel_top(){ return panel_top; };
+    auto get_panel_top(){ return panel_top; };
 
-    CustomGrid* get_grid_header(){ return grid_header; };
-    wxButton* get_button_header_import(){ return button_header_import; };
-    wxButton* get_button_header_export(){ return button_header_export; };
-    wxButton* get_button_header_import_from_clipboard(){ return button_header_import_from_clipboard; };
+    auto get_grid_header() { return grid_header; };
+    auto get_button_header_import(){ return button_header_import; };
+    auto get_button_header_export(){ return button_header_export; };
+    auto get_button_header_import_from_clipboard(){ return button_header_import_from_clipboard; };
 
-    CustomGrid* get_grid_data(){ return grid_data; };
-    wxButton* get_button_data_clear_selected(){ return button_data_clear_selected; };
-    wxButton* get_button_data_select_all(){ return button_data_select_all; };
+    auto get_grid_data(){ return grid_data; };
+    auto get_button_data_clear_selected(){ return button_data_clear_selected; };
+    auto get_button_data_select_all(){ return button_data_select_all; };
 
-    wxButton* get_button_data_move_up(){ return button_data_move_up; };
-    wxButton* get_button_data_move_down(){ return button_data_move_down; };
+    auto get_button_data_move_up(){ return button_data_move_up; };
+    auto get_button_data_move_down(){ return button_data_move_down; };
 
-    wxButton* get_button_data_add(){ return button_data_add; };
-    wxButton* get_button_data_delete(){ return button_data_delete; };
-    wxButton* get_button_data_add_from_file(){ return button_data_add_from_file; };
-    wxButton* get_button_data_export(){ return button_data_export; };
-    wxButton* get_button_data_add_from_clipboard(){ return button_data_add_from_clipboard; };
-    wxSearchCtrl* get_searchctrl_data_search(){ return searchctrl_data_search; };
-    wxButton* get_button_data_search_forward(){ return button_data_search_forward; };
-    wxButton* get_button_data_search_backward(){ return button_data_search_backward; };
+    auto get_button_data_add(){ return button_data_add; };
+    auto get_button_data_delete(){ return button_data_delete; };
+    auto get_button_data_add_from_file(){ return button_data_add_from_file; };
+    auto get_button_data_export(){ return button_data_export; };
+    auto get_button_data_add_from_clipboard(){ return button_data_add_from_clipboard; };
+    auto get_searchctrl_data_search(){ return searchctrl_data_search; };
+    auto get_button_data_search_forward(){ return button_data_search_forward; };
+    auto get_button_data_search_backward(){ return button_data_search_backward; };
 
-    CustomGrid* get_grid_trailer(){ return grid_trailer; };
-    wxButton* get_button_trailer_recalculated(){ return button_trailer_recalculated; };
+    auto get_grid_trailer(){ return grid_trailer; };
+    auto get_button_trailer_recalculated(){ return button_trailer_recalculated; };
 
-    CustomGrid* get_grid_end(){ return grid_end; };
+    auto get_grid_end(){ return grid_end; };
 
+    using GridArray = std::array<CustomGrid*, (FBEnumInt)FBPart::ITEM_NUM>;
     auto get_grid_array()
     {
-        return std::array<CustomGrid*, (FBEnumInt)FBPart::ITEM_NUM>{grid_header, grid_data, grid_trailer, grid_end};
+        return GridArray{grid_header, grid_data, grid_trailer, grid_end};
     };
 
 private:

@@ -1,7 +1,7 @@
 #include "InitialFrame.h"
 #include <wx/artprov.h>
 
-InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
+InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
 {
     //MENU FILE
     menu_file = new wxMenu;
@@ -72,16 +72,16 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
     button_data_clear_selected = new wxButton(panel_top, wxID_ANY, "全解除");
     button_data_move_up = new wxButton(panel_top, wxID_ANY, "上移動");
         button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
-        button_data_move_up->SetToolTip("選択したデータレコードを上に移動します");
+        button_data_move_up->SetToolTip("選択したレコードを上に移動します");
     button_data_move_down = new wxButton(panel_top, wxID_ANY, "下移動");
         button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
-        button_data_move_down->SetToolTip("選択したデータレコードを下に移動します");
+        button_data_move_down->SetToolTip("選択したレコードを下に移動します");
     button_data_add = new wxButton(panel_top, wxID_ANY, "行追");
         button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR));
-        button_data_add->SetToolTip("末尾または選択した位置に新規データレコードを追加します");
+        button_data_add->SetToolTip("末尾または選択した位置に新規レコードを追加します");
     button_data_delete = new wxButton(panel_top, wxID_ANY, "行削");
         button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_TOOLBAR));
-        button_data_delete->SetToolTip("選択したデータレコードを削除します");
+        button_data_delete->SetToolTip("選択したレコードを削除します");
     button_data_add_from_file = new wxButton(panel_top, wxID_ANY, "読込");
         button_data_add_from_file->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
         button_data_add_from_file->SetToolTip("末尾または選択した位置にファイルからデータレコードを追加します");
@@ -153,6 +153,9 @@ InitialFrame::InitialFrame() : wxFrame(NULL, wxID_ANY, "")
 
     // STATUS
     CreateStatusBar();
+
+    // ICON
+    SetIcon(wxICON(app));
 }
 
 void InitialFrame::force_refresh()

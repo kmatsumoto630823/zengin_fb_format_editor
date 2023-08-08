@@ -44,6 +44,8 @@ private:
     std::string m_padding_kana;
     std::string m_chars_num;
     std::string m_padding_num;
+    std::string m_chars_dummy;
+    std::string m_padding_dummy;
 };
 
 #endif //INITIAL_CONTROLLER_H

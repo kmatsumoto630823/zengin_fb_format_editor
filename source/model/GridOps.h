@@ -14,6 +14,14 @@ namespace GridOps {
 using siz_t = long long;
 using val_t = wxString;
 
+
+template<typename T>
+using rm_ptrcvref_t = std::remove_pointer_t<std::remove_cvref_t<T>>;
+
+template<typename T, typename U>
+concept derived_from_unmod = std::derived_from<rm_ptrcvref_t<T>, U>;
+
+
 template<typename T>
 class Adapter{};
 
@@ -55,6 +63,11 @@ private:
     value_type m_wxstrBuff;
 };
 
+template<typename T>
+requires derived_from_unmod<T, wxGridTableBase> || derived_from_unmod<T, wxGrid>
+Adapter(T) -> Adapter<wxGridTableBase>;
+
+
 template<>
 class Adapter<FBGrid>
 {
@@ -93,17 +106,7 @@ private:
 };
 
 template<typename T>
-using rm_ptrcvref_t = std::remove_pointer_t<std::remove_cvref_t<T>>;
-
-template<typename T>
-Adapter(T) -> Adapter<rm_ptrcvref_t<T>>;
-
-template<typename T>
-requires std::derived_from<rm_ptrcvref_t<T>, wxGridTableBase> || std::derived_from<rm_ptrcvref_t<T>, wxGrid>
-Adapter(T) -> Adapter<wxGridTableBase>;
-
-template<typename T>
-requires std::derived_from<rm_ptrcvref_t<T>, FBGrid>
+requires derived_from_unmod<T, FBGrid>
 Adapter(T) -> Adapter<FBGrid>;
 
 

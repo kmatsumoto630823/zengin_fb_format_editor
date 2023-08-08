@@ -15,18 +15,13 @@ class CustomGridCellTextEditor : public wxGridCellTextEditor
 public:
     CustomGridCellTextEditor(size_t maxChars = 0) : wxGridCellTextEditor(maxChars){};
     
-    virtual void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) override;
     virtual void BeginEdit(int row, int col, wxGrid* grid) override;
     virtual void StartingKey(wxKeyEvent& event) override;
     
-    void SetTipString(const wxString& label, const wxString& descript);
     void SetValidString(const wxString& char_includes);
 
 private:
     wxString m_char_includes;
-    wxString m_label;
-    wxString m_descript;
-    bool m_isShowedTip;
 };
 
 class CustomGridCellStringRenderer : public wxGridCellStringRenderer
@@ -40,10 +35,10 @@ public:
 
     virtual void Draw
     (
-        wxGrid &grid,
-        wxGridCellAttr &attr,
-        wxDC &dc,
-        const wxRect &rect,
+        wxGrid& grid,
+        wxGridCellAttr& attr,
+        wxDC& dc,
+        const wxRect& rect,
         int row,
         int col,
         bool isSelected
@@ -81,6 +76,7 @@ private:
     inline void swap_rows(int row1, int row2);
     inline void move_selected(bool down);
 
+    int m_mouseover_lable_col = -1;
     FBAttrs m_attrs;
 };
 

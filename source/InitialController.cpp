@@ -9,14 +9,21 @@
 #include <wx/fileconf.h>
 #include <wx/clipbrd.h>
 
-#define F() (get_frame())
+#define F() (this->get_frame())
 #define _do_callback_(collback) do {F()->Freeze(); (collback); F()->force_refresh(); F()->Thaw();} while(0)
 
 
 void InitialController::switch_type(FBType type)
 {
     m_type = type;
-    m_attrs_array = make_attrs_array(m_type, m_chars_kana, m_padding_kana, m_chars_num, m_padding_num);
+    m_attrs_array =
+        make_attrs_array
+        (
+            m_type,
+            m_chars_kana,  m_padding_kana,
+            m_chars_num,   m_padding_num,
+            m_chars_dummy, m_padding_dummy
+        );
 
     F()->get_grid_header() ->reset(m_attrs_array.at((FBEnumInt)FBPart::HEADER ));
     F()->get_grid_data()   ->reset(m_attrs_array.at((FBEnumInt)FBPart::DATA   ));
@@ -49,10 +56,12 @@ void InitialController::initialize()
     m_window_width  = config.Read("WINDOW_WIDTH", 1600);
     m_window_height = config.Read("WINDOW_HEIGHT", 900);
    
-    m_chars_kana   = config.Read("CHARS_KANA",   wxEmptyString);
-    m_padding_kana = config.Read("PADDING_KANA", wxEmptyString);
-    m_chars_num    = config.Read("CHARS_NUM",    wxEmptyString);
-    m_padding_num  = config.Read("PADDING_NUM",  wxEmptyString);
+    m_chars_kana     = config.Read("CHARS_KANA",    wxEmptyString);
+    m_padding_kana   = config.Read("PADDING_KANA",  wxEmptyString);
+    m_chars_num      = config.Read("CHARS_NUM",     wxEmptyString);
+    m_padding_num    = config.Read("PADDING_NUM",   wxEmptyString);
+    m_chars_dummy    = config.Read("CHARS_DUMMY",   wxEmptyString);
+    m_padding_dummy  = config.Read("PADDING_DUMMY", wxEmptyString);
 
     create_frame();
     create_binds();
@@ -151,8 +160,8 @@ void InitialController::create_binds()
         for(FBEnumInt i = 0; i < (FBEnumInt)FBPart::ITEM_NUM; ++i)
         {
             /* GridOperation */
-            GridOps::Adapter src = fb[i];
-            GridOps::Adapter dst = F()->get_grid_array()[i];
+            auto src = GridOps::Adapter(fb[i]);
+            auto dst = GridOps::Adapter(F()->get_grid_array()[i]);
             GridOps::Copy(src, dst);
         }
     };
@@ -299,8 +308,8 @@ void InitialController::create_binds()
         for(FBEnumInt i = 0; i < (FBEnumInt)FBPart::ITEM_NUM; ++i)
         {
             /* GridOperation */
-            GridOps::Adapter src = F()->get_grid_array()[i];
-            GridOps::Adapter dst = fb[i];
+            auto src = GridOps::Adapter(F()->get_grid_array()[i]);
+            auto dst = GridOps::Adapter(fb[i]);
             GridOps::Copy(src, dst);
         }
 
@@ -411,8 +420,8 @@ void InitialController::create_binds()
         auto&& value = wxtable->GetValue(0, FB_ORDER_HEADER_TORIKUMIBI);
 
         /* GridOperation */{
-            GridOps::Adapter src = fb[FBPart::HEADER];
-            GridOps::Adapter dst = wxgrid;   
+            auto src = GridOps::Adapter(fb[FBPart::HEADER]);
+            auto dst = GridOps::Adapter(wxgrid);   
             GridOps::Copy(src, dst);
         }
 
@@ -453,8 +462,8 @@ void InitialController::create_binds()
         }
 
         /* GridOperation */{
-            GridOps::Adapter src = wxgrid;
-            GridOps::Adapter dst = fb[FBPart::HEADER];
+            auto src = GridOps::Adapter(wxgrid);
+            auto dst = GridOps::Adapter(fb[FBPart::HEADER]);
             GridOps::Copy(src, dst);
         }
 
@@ -540,8 +549,8 @@ void InitialController::create_binds()
         auto&& value = wxtable->GetValue(0, FB_ORDER_HEADER_TORIKUMIBI);
 
         /* GridOperation */{
-            GridOps::Adapter src = fb[FBPart::HEADER];
-            GridOps::Adapter dst = wxgrid;
+            auto src = GridOps::Adapter(fb[FBPart::HEADER]);
+            auto dst = GridOps::Adapter(wxgrid);
             GridOps::Copy(src, dst);
         }
 
@@ -747,8 +756,8 @@ void InitialController::create_binds()
         auto dlgrid = gdialog.get_grid();
 
         /* GridOperation */{
-            GridOps::Adapter src = fb[FBPart::DATA];
-            GridOps::Adapter dst = dlgrid;
+            auto src = GridOps::Adapter(fb[FBPart::DATA]);
+            auto dst = GridOps::Adapter(dlgrid);
             GridOps::Copy(src, dst);
         }
 
@@ -760,8 +769,8 @@ void InitialController::create_binds()
         dlgrid->remain_selected();
 
         /* GridOperation */{
-            GridOps::Adapter src = dlgrid;
-            GridOps::Adapter dst = wxgrid;
+            auto src = GridOps::Adapter(dlgrid);
+            auto dst = GridOps::Adapter(wxgrid);
             GridOps::Insert(src, dst, pos);
         }
         
@@ -820,8 +829,8 @@ void InitialController::create_binds()
         }
 
         /* GridOperation */{
-            GridOps::Adapter src = wxgrid;
-            GridOps::Adapter dst = fb[FBPart::DATA];
+            auto src = GridOps::Adapter(wxgrid);
+            auto dst = GridOps::Adapter(fb[FBPart::DATA]);
             GridOps::Copy(src, dst);
         }
 
@@ -923,8 +932,8 @@ void InitialController::create_binds()
         }
 
         /* GridOperation */{
-            GridOps::Adapter src = fb[FBPart::DATA];
-            GridOps::Adapter dst = wxgrid;
+            auto src = GridOps::Adapter(fb[FBPart::DATA]);
+            auto dst = GridOps::Adapter(wxgrid);
             GridOps::Insert(src, dst, pos);
         }
         
