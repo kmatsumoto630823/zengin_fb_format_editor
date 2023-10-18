@@ -14,11 +14,12 @@ class CustomGridCellTextEditor : public wxGridCellTextEditor
 {
 public:
     CustomGridCellTextEditor(size_t maxChars = 0) : wxGridCellTextEditor(maxChars){};
-    
+
     virtual void BeginEdit(int row, int col, wxGrid* grid) override;
     virtual void StartingKey(wxKeyEvent& event) override;
     
     void SetValidString(const wxString& char_includes);
+    wxTextCtrl* GetTextCtrl(){ return Text(); };
 
 private:
     wxString m_char_includes;

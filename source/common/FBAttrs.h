@@ -179,13 +179,18 @@ struct FBAttr
         auto pad_char = padding_conf.at(1);
         auto pad_num = length - value.length();
 
-        if(pad_side == 'R')
+        switch(pad_side)
         {
-            value.append(pad_num, pad_char);
-        }
-        else if(pad_side == 'L')
-        {
-            value.insert(0, pad_num, pad_char);
+            case 'R' :
+                value.append(pad_num, pad_char);
+                break;
+
+            case 'L' :
+                value.insert(0, pad_num, pad_char);
+                break;
+            
+            default :
+                return false;
         }
 
         return true;

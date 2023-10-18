@@ -57,13 +57,13 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
     //GRID_HEADER
     grid_header = new CustomGrid(panel_top, wxID_ANY);
     button_header_import = new wxButton(panel_top, wxID_ANY, "読込");
-        button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
+        button_header_import->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_BUTTON));
         button_header_import->SetToolTip("ヘッダレコードをファイルから読込（上書）します");
     button_header_export = new wxButton(panel_top, wxID_ANY, "出力");
-        button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
+        button_header_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_BUTTON));
         button_header_export->SetToolTip("ヘッダレコードをファイルに出力します");
     button_header_import_from_clipboard = new wxButton(panel_top, wxID_ANY, "貼付");
-        button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
+        button_header_import_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_BUTTON));
         button_header_import_from_clipboard->SetToolTip("ヘッダレコードをクリップボードから読込（上書）します");
 
     //GRID_DATA
@@ -71,36 +71,36 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
     button_data_select_all = new wxButton(panel_top, wxID_ANY, "全選択");
     button_data_clear_selected = new wxButton(panel_top, wxID_ANY, "全解除");
     button_data_move_up = new wxButton(panel_top, wxID_ANY, "上移動");
-        button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR));
+        button_data_move_up->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_UP, wxART_BUTTON));
         button_data_move_up->SetToolTip("選択したレコードを上に移動します");
     button_data_move_down = new wxButton(panel_top, wxID_ANY, "下移動");
-        button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR));
+        button_data_move_down->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_BUTTON));
         button_data_move_down->SetToolTip("選択したレコードを下に移動します");
     button_data_add = new wxButton(panel_top, wxID_ANY, "行追");
-        button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR));
-        button_data_add->SetToolTip("末尾または選択した位置に新規レコードを追加します");
+        button_data_add->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS, wxART_BUTTON));
+        button_data_add->SetToolTip("末尾または選択した位置に新規レコードを読込（挿入）します");
     button_data_delete = new wxButton(panel_top, wxID_ANY, "行削");
-        button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_TOOLBAR));
+        button_data_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_MINUS, wxART_BUTTON));
         button_data_delete->SetToolTip("選択したレコードを削除します");
     button_data_add_from_file = new wxButton(panel_top, wxID_ANY, "読込");
-        button_data_add_from_file->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
-        button_data_add_from_file->SetToolTip("末尾または選択した位置にファイルからデータレコードを追加します");
+        button_data_add_from_file->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_BUTTON));
+        button_data_add_from_file->SetToolTip("末尾または選択した位置にファイルからレコードを読込（挿入）します");
     button_data_export = new wxButton(panel_top, wxID_ANY, "出力");
-        button_data_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR));
+        button_data_export->SetBitmap(wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_BUTTON));
         button_data_export->SetToolTip("データレコードをファイルに出力します");
     button_data_add_from_clipboard = new wxButton(panel_top, wxID_ANY, "貼付");
-        button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_TOOLBAR));
-        button_data_add_from_clipboard->SetToolTip("末尾または選択した位置にクリップボードからデータレコードを追加します");
+        button_data_add_from_clipboard->SetBitmap(wxArtProvider::GetBitmap(wxART_PASTE, wxART_BUTTON));
+        button_data_add_from_clipboard->SetToolTip("末尾または選択した位置にクリップボードからレコードを読込（挿入）します");
     searchctrl_data_search = new wxSearchCtrl(panel_top, wxID_ANY);
     button_data_search_forward = new wxButton(panel_top, wxID_ANY, "次検索");
-        button_data_search_forward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR));
+        button_data_search_forward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_BUTTON));
     button_data_search_backward = new wxButton(panel_top, wxID_ANY, "前検索");
-        button_data_search_backward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR));
+        button_data_search_backward->SetBitmap(wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_BUTTON));
 
     //GRID_TRAILER
     grid_trailer = new CustomGrid(panel_top, wxID_ANY);
     button_trailer_recalculated = new wxButton(panel_top, wxID_ANY, "再計算");
-        button_trailer_recalculated->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_TOOLBAR));
+        button_trailer_recalculated->SetBitmap(wxArtProvider::GetBitmap(wxART_REFRESH, wxART_BUTTON));
         button_trailer_recalculated->SetToolTip("合計件数と合計金額を再計算します");
 
     //GRID_END
@@ -110,7 +110,6 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
     auto sizer_top = new wxBoxSizer(wxVERTICAL);
     panel_top->SetSizer(sizer_top);
         sizer_top->AddSpacer(10);
-
         auto sizer_header_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_header_label, 0, wxALIGN_LEFT);
             sizer_header_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠ヘッダレコード：　"), 0, wxALIGN_BOTTOM);
@@ -120,6 +119,7 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
         sizer_top->Add(grid_header, 0, wxALIGN_LEFT | wxLEFT, 1);
         sizer_top->AddSpacer(10);
 
+        sizer_top->AddSpacer(10);
         auto sizer_data_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_data_label, 0, wxALIGN_LEFT);
             sizer_data_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠データレコード：　"), 0, wxALIGN_BOTTOM);
@@ -138,6 +138,7 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
         sizer_top->Add(grid_data, 1, wxALIGN_LEFT | wxEXPAND | wxLEFT, 1);
         sizer_top->AddSpacer(10);
 
+        sizer_top->AddSpacer(10);
         auto sizer_trailer_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_trailer_label, 0, wxALIGN_LEFT);
             sizer_trailer_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠トレーラレコード：　"), 0, wxALIGN_BOTTOM);
@@ -145,6 +146,7 @@ InitialFrame::InitialFrame() : wxFrame(nullptr, wxID_ANY, "")
         sizer_top->Add(grid_trailer, 0, wxALIGN_LEFT | wxLEFT, 1);
         sizer_top->AddSpacer(10);
 
+        sizer_top->AddSpacer(10);
         auto sizer_end_label = new wxBoxSizer(wxHORIZONTAL);
         sizer_top->Add(sizer_end_label, 0, wxALIGN_LEFT);
             sizer_end_label->Add(new wxStaticText(panel_top, wxID_ANY, "＠エンドレコード：　"), 0, wxALIGN_BOTTOM);

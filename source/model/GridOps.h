@@ -37,6 +37,7 @@ public:
 
     Adapter(wxGridTableBase* wxgridTable){ m_wxgridTable = wxgridTable; };
     Adapter(wxGridTableBase& wxgridTable){ m_wxgridTable = &wxgridTable; };
+    
 
     //Adapter Function
     size_type GetNumberRows() const { return m_wxgridTable->GetNumberRows(); };

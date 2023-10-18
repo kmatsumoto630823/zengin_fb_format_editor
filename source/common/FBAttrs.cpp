@@ -228,7 +228,7 @@ FBAttrsArray make_attrs_array
             break;
 
         default:
-            attrs_array = ATTRS_ARRAY_SOHFURI;          
+            throw;          
             break;
     }
     
@@ -257,12 +257,13 @@ FBAttrsArray make_attrs_array
                 "\r\n" +
                 "属性：" + attr.char_kind + "（" + std::to_string(attr.length) + "）" +
                 "\r\n" +
-                "入力要求：" + (attr.optionality == 'O' ? "任意" : "必須") +
+                "入力：" + (attr.optionality == 'M' ? "必須" : (attr.optionality == 'O' ? "任意" : (attr.optionality == '-' ? "なし" : ""))) +
                 "\r\n" +
                 "\r\n" +
                 (!attr.descript.empty() ? "説明：" : "") + 
                 "\r\n" +
                 attr.descript;
+
 
             attr.descript = descript;
 

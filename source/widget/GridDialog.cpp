@@ -99,5 +99,6 @@ int GridDialog::ShowModal()
 {
     m_grid->SelectAll();
     m_grid->SetFocus();
+    
     return wxDialog::ShowModal();
 }

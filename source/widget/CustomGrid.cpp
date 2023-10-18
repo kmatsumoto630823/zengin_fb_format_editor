@@ -17,7 +17,7 @@ void CustomGridCellTextEditor::BeginEdit(int row, int col, wxGrid* grid)
     Text()->SetInsertionPointEnd();
     Text()->SelectAll();
     Text()->SetFocus();
-    Text()->SetCursor(wxCURSOR_IBEAM);    
+    Text()->SetCursor(wxCURSOR_IBEAM);
 
     Text()->Show();
 }
@@ -126,7 +126,7 @@ CustomGrid::CustomGrid
     SetTabBehaviour(wxGrid::Tab_Wrap);
     SetCellHighlightColour(GetSelectionBackground());
 
-    auto renderer = new CustomGridCellStringRenderer({255, 255, 255}, {221, 235, 247});
+    auto renderer = new CustomGridCellStringRenderer({255, 251, 251}, {255, 238, 238});
     SetDefaultRenderer(renderer);
 
     DisableDragRowSize();

@@ -13,7 +13,6 @@
 
 #include <array>
 
-
 enum ID_MENU
 {
     ID_MENU_NEW,
