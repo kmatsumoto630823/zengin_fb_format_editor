@@ -1,5 +1,5 @@
 # Overwrite this variable with your wxWidgets path
-YOUR_WXDIR = C:\wxWidgets\wxWidgets-3.2.3
+YOUR_WXDIR = C:\wxWidgets\wxWidgets-3.2.4
 
 # Option at building your wxWidgets library
 # (In my case, I build wxWidgets library with mingw-w64 "mingw32-make.exe SHELL=CMD.exe -f makefile.gcc BUILD=release UNICODE=1 SHARED=0 MONOLITHIC=1"

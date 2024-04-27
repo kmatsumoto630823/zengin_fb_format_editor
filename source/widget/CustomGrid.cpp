@@ -213,7 +213,7 @@ void CustomGrid::reset(const FBAttrs& attrs)
         auto col_attr = new wxGridCellAttr;
         auto col_editor = new CustomGridCellTextEditor(attr.length);
 
-        if(attr.order == 0)
+        if(attr.order == 0 || attr.char_kind == 'D')
         {
             col_attr->SetReadOnly();
         }
@@ -244,6 +244,15 @@ void CustomGrid::reset(const FBAttrs& attrs)
         attr.pad_value(initial_value);
 
         table->SetValue(row, col, initial_value);
+
+        if(attr.char_kind == 'D')
+        {
+            AutoSizeColLabelSize(col);
+        }
+        else
+        {
+            AutoSizeColumn(col);
+        }
     }
 
     auto row = GetNumberRows() - 1;
@@ -252,8 +261,6 @@ void CustomGrid::reset(const FBAttrs& attrs)
     ClearSelection();
     GoToCell(row, col);
     SetFocus();        
-
-    AutoSize();    
 }
 
 void CustomGrid::remain_selected()
